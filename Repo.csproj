@@ -4,21 +4,13 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    
-    <!-- Configuración para Release Build -->
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    
-    <!-- Optimizaciones para Release -->
     <Optimize>true</Optimize>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
-    
-    <!-- Configuración para publicación como librería -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
-    
-    <!-- Metadata del paquete -->
     <PackageId>AdvancedRepository.NET9</PackageId>
     <Version>1.0.0</Version>
     <Authors>Lenin Osorio Martinez - r0lm0 </Authors>
@@ -27,18 +19,13 @@
     <PackageTags>repository;entity-framework;net9;caching;validation;automapper;specification-pattern</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    
-    <!-- Configuración de compilación -->
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors>$(WarningsAsErrors);-CS8603</WarningsAsErrors>
-    
-    <!-- Configuración para diferentes configuraciones -->
     <DefineConstants Condition="'$(Configuration)' == 'Debug'">DEBUG;TRACE</DefineConstants>
     <DefineConstants Condition="'$(Configuration)' == 'Release'">RELEASE;TRACE</DefineConstants>
   </PropertyGroup>
 
-  <!-- Configuración específica para Release -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <Optimize>true</Optimize>
     <DebugType>none</DebugType>
@@ -46,7 +33,6 @@
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
 
-  <!-- Configuración específica para Debug -->
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <Optimize>false</Optimize>
     <DebugType>full</DebugType>
@@ -58,11 +44,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.6" />
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="FluentValidation" Version="11.9.0" />
   </ItemGroup>
 
-  <!-- Excluir carpetas de ejemplos del build -->
   <ItemGroup>
     <Compile Remove="Examples/**" />
     <Compile Remove="EjemploAPI/**" />
@@ -72,9 +58,8 @@
     <None Remove="EjemploAPI/**" />
   </ItemGroup>
 
-  <!-- Incluir README en el paquete -->
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
-</Project>
+</Project> 
