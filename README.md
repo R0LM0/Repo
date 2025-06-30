@@ -33,7 +33,6 @@ dotnet add package Microsoft.Extensions.Logging.Abstractions
 dotnet add package Microsoft.Extensions.Caching.StackExchangeRedis
 dotnet add package AutoMapper
 dotnet add package FluentValidation
-dotnet add package System.Linq.Dynamic.Core
 ```
 
 ## 🏗️ Estructura del Proyecto
