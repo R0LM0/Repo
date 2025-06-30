@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Repo.Repository.Extensions;
 using Repo.Repository.Interfaces;
 using Repo.Repository.Models;
 using Repo.Repository.Specifications;
@@ -272,10 +273,22 @@ namespace Repo.Repository.Base
             {
                 var query = Table.AsQueryable();
 
-                // Aplicar búsqueda básica (simplificada sin System.Linq.Dynamic.Core)
+                // Aplica búsqueda si hay SearchTerm
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
                     query = ApplySearchFilter(query, request.SearchTerm);
+                }
+
+                // Aplica ordenamiento dinámico
+                if (!string.IsNullOrEmpty(request.SortBy))
+                {
+                    query = query.OrderByDynamic(request.SortBy, request.IsAscending);
+                }
+                else
+                {
+                    // Orden por PK o por la primera propiedad si no se especifica
+                    var pk = typeof(T).GetProperties().First().Name;
+                    query = query.OrderByDynamic(pk, true);
                 }
 
                 var totalCount = await query.CountAsync();
