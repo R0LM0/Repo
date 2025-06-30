@@ -2982,11 +2982,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\WORKSPACE\\.NET\\.net8\\Repo\\Repo.csproj",
-      "projectName": "Repo",
-      "projectPath": "D:\\WORKSPACE\\.NET\\.net8\\Repo\\Repo.csproj",
+      "projectUniqueName": "D:\\WORKSPACE\\.NET\\.net9\\Repo\\Repo.csproj",
+      "projectName": "AdvancedRepository.NET9",
+      "projectPath": "D:\\WORKSPACE\\.NET\\.net9\\Repo\\Repo.csproj",
       "packagesPath": "C:\\Users\\r0lm0\\.nuget\\packages\\",
-      "outputPath": "D:\\WORKSPACE\\.NET\\.net8\\Repo\\obj\\",
+      "outputPath": "D:\\WORKSPACE\\.NET\\.net9\\Repo\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -3010,6 +3010,7 @@
         }
       },
       "warningProperties": {
+        "allWarningsAsErrors": true,
         "warnAsError": [
           "NU1605"
         ]

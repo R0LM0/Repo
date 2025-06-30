@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "knV2jzL3uDg=",
+  "dgSpecHash": "7uHXEEjbdH8=",
   "success": true,
-  "projectFilePath": "D:\\WORKSPACE\\.NET\\.net8\\Repo\\Repo.csproj",
+  "projectFilePath": "D:\\WORKSPACE\\.NET\\.net9\\Repo\\Repo.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\r0lm0\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\r0lm0\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
