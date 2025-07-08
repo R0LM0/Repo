@@ -1,33 +1,35 @@
 {
   "format": 1,
   "restore": {
-    "D:\\WORKSPACE\\.NET\\.net9\\Repo\\Repo.csproj": {}
+    "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj": {}
   },
   "projects": {
-    "D:\\WORKSPACE\\.NET\\.net9\\Repo\\Repo.csproj": {
+    "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\WORKSPACE\\.NET\\.net9\\Repo\\Repo.csproj",
+        "projectUniqueName": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj",
         "projectName": "AdvancedRepository.NET9",
-        "projectPath": "D:\\WORKSPACE\\.NET\\.net9\\Repo\\Repo.csproj",
-        "packagesPath": "C:\\Users\\r0lm0\\.nuget\\packages\\",
-        "outputPath": "D:\\WORKSPACE\\.NET\\.net9\\Repo\\obj\\",
+        "projectPath": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj",
+        "packagesPath": "C:\\Users\\losorio\\.nuget\\packages\\",
+        "outputPath": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
         ],
         "configFilePaths": [
-          "C:\\Users\\r0lm0\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\losorio\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://nuget.pkg.github.com/R0LM0/index.json": {}
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
@@ -117,7 +119,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300-preview.0.25177.5/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
