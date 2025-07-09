@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Librería avanzada de repositorio para .NET 9 con funcionalidades de caché, valida" +
     "ción, mapeo y especificaciones"))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+04239e16b0aff7f7b4005afed21ec8baeb03b744")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+714ae5b8254c226e75307660b2dca390cb62f9d9")]
 [assembly: System.Reflection.AssemblyProductAttribute("Repo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Repo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
