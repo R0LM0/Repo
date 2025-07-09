@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj": {}
+    "e:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj": {}
   },
   "projects": {
-    "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj": {
+    "e:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj",
+        "projectUniqueName": "e:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj",
         "projectName": "AdvancedRepository.NET9",
-        "projectPath": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj",
+        "projectPath": "e:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj",
         "packagesPath": "C:\\Users\\losorio\\.nuget\\packages\\",
-        "outputPath": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\obj\\",
+        "outputPath": "e:\\WORKSPACE\\.NET\\.NET9\\Repo\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
