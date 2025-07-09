@@ -11,7 +11,7 @@ using System;
 using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("freelance")]
-[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Librería avanzada de repositorio para .NET 9 con funcionalidades de caché, valida" +
     "ción, mapeo y especificaciones"))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
