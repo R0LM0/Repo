@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Repo.Repository.Models;
 using Repo.Repository.Specifications;
+using System.Data;
+using Microsoft.Data.SqlClient;
 
 namespace Repo.Repository.Base
 {
@@ -30,6 +32,21 @@ namespace Repo.Repository.Base
         // Métodos para procedimientos almacenados:
         Task<IEnumerable<TResult>> ExecuteStoredProcedureAsync<TResult>(string storedProcedure, params object[] parameters) where TResult : class;
         Task<int> ExecuteStoredProcedureNonQueryAsync(string storedProcedure, params object[] parameters);
+
+        // NUEVOS MÉTODOS - Genéricos para cualquier SP/SQL
+        Task<IEnumerable<TResult>> ExecuteQueryAsync<TResult>(string sql, params SqlParameter[] parameters) where TResult : class;
+        Task<TResult?> ExecuteQuerySingleAsync<TResult>(string sql, params SqlParameter[] parameters) where TResult : class;
+        Task<int> ExecuteCommandAsync(string sql, params SqlParameter[] parameters);
+        Task<object?> ExecuteScalarAsync(string sql, params SqlParameter[] parameters);
+        Task<DataTable> ExecuteDataTableAsync(string sql, params SqlParameter[] parameters);
+        Task<DataSet> ExecuteDataSetAsync(string sql, params SqlParameter[] parameters);
+
+        // Métodos específicos para SPs con parámetros dinámicos
+        Task<IEnumerable<TResult>> CallStoredProcedureAsync<TResult>(string procedureName, Dictionary<string, object> parameters) where TResult : class;
+        Task<TResult?> CallStoredProcedureSingleAsync<TResult>(string procedureName, Dictionary<string, object> parameters) where TResult : class;
+        Task<int> CallStoredProcedureNonQueryAsync(string procedureName, Dictionary<string, object> parameters);
+        Task<object?> CallStoredProcedureScalarAsync(string procedureName, Dictionary<string, object> parameters);
+        Task<DataTable> CallStoredProcedureDataTableAsync(string procedureName, Dictionary<string, object> parameters);
 
         // NUEVOS MÉTODOS - Paginación y Filtrado
         Task<PagedResult<T>> GetPagedAsync(PagedRequest request);

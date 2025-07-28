@@ -7,6 +7,8 @@ using Repo.Repository.Interfaces;
 using Repo.Repository.Models;
 using Repo.Repository.Specifications;
 using System.Linq.Expressions;
+using System.Data;
+using System.Reflection;
 
 namespace Repo.Repository.Base
 {
@@ -261,6 +263,315 @@ namespace Repo.Repository.Base
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Error al ejecutar el procedimiento almacenado (non query) {Procedure} para {Entity}", storedProcedure, typeof(T).Name);
+                throw;
+            }
+        }
+        #endregion
+
+        #region NUEVOS MÉTODOS - Genéricos para cualquier SP/SQL
+        public async Task<IEnumerable<TResult>> ExecuteQueryAsync<TResult>(string sql, params SqlParameter[] parameters) where TResult : class
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("La consulta SQL no puede estar vacía.", nameof(sql));
+
+            try
+            {
+                Logger.LogDebug("Ejecutando consulta SQL: {SQL}", sql);
+                return await Db.Set<TResult>().FromSqlRaw(sql, parameters).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al ejecutar la consulta SQL: {SQL}", sql);
+                throw;
+            }
+        }
+
+        public async Task<TResult?> ExecuteQuerySingleAsync<TResult>(string sql, params SqlParameter[] parameters) where TResult : class
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("La consulta SQL no puede estar vacía.", nameof(sql));
+
+            try
+            {
+                Logger.LogDebug("Ejecutando consulta SQL (single): {SQL}", sql);
+                return await Db.Set<TResult>().FromSqlRaw(sql, parameters).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al ejecutar la consulta SQL (single): {SQL}", sql);
+                throw;
+            }
+        }
+
+        public async Task<int> ExecuteCommandAsync(string sql, params SqlParameter[] parameters)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("El comando SQL no puede estar vacío.", nameof(sql));
+
+            try
+            {
+                Logger.LogDebug("Ejecutando comando SQL: {SQL}", sql);
+                return await Db.Database.ExecuteSqlRawAsync(sql, parameters);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al ejecutar el comando SQL: {SQL}", sql);
+                throw;
+            }
+        }
+
+        public async Task<object?> ExecuteScalarAsync(string sql, params SqlParameter[] parameters)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("La consulta SQL no puede estar vacía.", nameof(sql));
+
+            try
+            {
+                Logger.LogDebug("Ejecutando consulta SQL (scalar): {SQL}", sql);
+
+                using var command = Db.Database.GetDbConnection().CreateCommand();
+                command.CommandText = sql;
+                command.Parameters.AddRange(parameters);
+
+                await Db.Database.OpenConnectionAsync();
+                return await command.ExecuteScalarAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al ejecutar la consulta SQL (scalar): {SQL}", sql);
+                throw;
+            }
+            finally
+            {
+                await Db.Database.CloseConnectionAsync();
+            }
+        }
+
+        public async Task<DataTable> ExecuteDataTableAsync(string sql, params SqlParameter[] parameters)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("La consulta SQL no puede estar vacía.", nameof(sql));
+
+            try
+            {
+                Logger.LogDebug("Ejecutando consulta SQL (DataTable): {SQL}", sql);
+
+                using var command = new SqlCommand(sql, (SqlConnection)Db.Database.GetDbConnection());
+                command.Parameters.AddRange(parameters);
+
+                await Db.Database.OpenConnectionAsync();
+                using var adapter = new SqlDataAdapter(command);
+                var dataTable = new DataTable();
+                adapter.Fill(dataTable);
+
+                return dataTable;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al ejecutar la consulta SQL (DataTable): {SQL}", sql);
+                throw;
+            }
+            finally
+            {
+                await Db.Database.CloseConnectionAsync();
+            }
+        }
+
+        public async Task<DataSet> ExecuteDataSetAsync(string sql, params SqlParameter[] parameters)
+        {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("La consulta SQL no puede estar vacía.", nameof(sql));
+
+            try
+            {
+                Logger.LogDebug("Ejecutando consulta SQL (DataSet): {SQL}", sql);
+
+                using var command = new SqlCommand(sql, (SqlConnection)Db.Database.GetDbConnection());
+                command.Parameters.AddRange(parameters);
+
+                await Db.Database.OpenConnectionAsync();
+                using var adapter = new SqlDataAdapter(command);
+                var dataSet = new DataSet();
+                adapter.Fill(dataSet);
+
+                return dataSet;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al ejecutar la consulta SQL (DataSet): {SQL}", sql);
+                throw;
+            }
+            finally
+            {
+                await Db.Database.CloseConnectionAsync();
+            }
+        }
+
+        public async Task<IEnumerable<TResult>> CallStoredProcedureAsync<TResult>(string procedureName, Dictionary<string, object> parameters) where TResult : class
+        {
+            if (string.IsNullOrWhiteSpace(procedureName))
+                throw new ArgumentException("El nombre del procedimiento no puede estar vacío.", nameof(procedureName));
+
+            try
+            {
+                Logger.LogDebug("Llamando stored procedure: {ProcedureName}", procedureName);
+
+                var sqlParameters = parameters.Select(p => new SqlParameter($"@{p.Key}", p.Value ?? DBNull.Value)).ToArray();
+
+                // Usar ADO.NET directo para evitar problemas con tipos no mapeados en EF
+                using var connection = new SqlConnection(Db.Database.GetConnectionString());
+                using var command = new SqlCommand(procedureName, connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                command.Parameters.AddRange(sqlParameters);
+
+                await connection.OpenAsync();
+                using var reader = await command.ExecuteReaderAsync();
+
+                var results = new List<TResult>();
+
+                if (reader.HasRows)
+                {
+                    var properties = typeof(TResult).GetProperties();
+
+                    while (await reader.ReadAsync())
+                    {
+                        var instance = Activator.CreateInstance<TResult>();
+
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            var columnName = reader.GetName(i);
+                            var property = properties.FirstOrDefault(p =>
+                                string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase));
+
+                            if (property != null && property.CanWrite && !reader.IsDBNull(i))
+                            {
+                                var value = reader.GetValue(i);
+                                var convertedValue = Convert.ChangeType(value, property.PropertyType);
+                                property.SetValue(instance, convertedValue);
+                            }
+                        }
+
+                        results.Add(instance);
+                    }
+                }
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al llamar el stored procedure: {ProcedureName}", procedureName);
+                throw;
+            }
+        }
+
+        public async Task<TResult?> CallStoredProcedureSingleAsync<TResult>(string procedureName, Dictionary<string, object> parameters) where TResult : class
+        {
+            if (string.IsNullOrWhiteSpace(procedureName))
+                throw new ArgumentException("El nombre del procedimiento no puede estar vacío.", nameof(procedureName));
+
+            try
+            {
+                Logger.LogDebug("Llamando stored procedure (single): {ProcedureName}", procedureName);
+
+                var results = await CallStoredProcedureAsync<TResult>(procedureName, parameters);
+                return results.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al llamar el stored procedure (single): {ProcedureName}", procedureName);
+                throw;
+            }
+        }
+
+        public async Task<int> CallStoredProcedureNonQueryAsync(string procedureName, Dictionary<string, object> parameters)
+        {
+            if (string.IsNullOrWhiteSpace(procedureName))
+                throw new ArgumentException("El nombre del procedimiento no puede estar vacío.", nameof(procedureName));
+
+            try
+            {
+                Logger.LogDebug("Llamando stored procedure (non query): {ProcedureName}", procedureName);
+
+                var sqlParameters = parameters.Select(p => new SqlParameter($"@{p.Key}", p.Value ?? DBNull.Value)).ToArray();
+
+                using var connection = new SqlConnection(Db.Database.GetConnectionString());
+                using var command = new SqlCommand(procedureName, connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                command.Parameters.AddRange(sqlParameters);
+
+                await connection.OpenAsync();
+                return await command.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al llamar el stored procedure (non query): {ProcedureName}", procedureName);
+                throw;
+            }
+        }
+
+        public async Task<object?> CallStoredProcedureScalarAsync(string procedureName, Dictionary<string, object> parameters)
+        {
+            if (string.IsNullOrWhiteSpace(procedureName))
+                throw new ArgumentException("El nombre del procedimiento no puede estar vacío.", nameof(procedureName));
+
+            try
+            {
+                Logger.LogDebug("Llamando stored procedure (scalar): {ProcedureName}", procedureName);
+
+                var sqlParameters = parameters.Select(p => new SqlParameter($"@{p.Key}", p.Value ?? DBNull.Value)).ToArray();
+
+                using var connection = new SqlConnection(Db.Database.GetConnectionString());
+                using var command = new SqlCommand(procedureName, connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                command.Parameters.AddRange(sqlParameters);
+
+                await connection.OpenAsync();
+                return await command.ExecuteScalarAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al llamar el stored procedure (scalar): {ProcedureName}", procedureName);
+                throw;
+            }
+        }
+
+        public Task<DataTable> CallStoredProcedureDataTableAsync(string procedureName, Dictionary<string, object> parameters)
+        {
+            if (string.IsNullOrWhiteSpace(procedureName))
+                throw new ArgumentException("El nombre del procedimiento no puede estar vacío.", nameof(procedureName));
+
+            try
+            {
+                Logger.LogDebug("Llamando stored procedure (DataTable): {ProcedureName}", procedureName);
+
+                var sqlParameters = parameters.Select(p => new SqlParameter($"@{p.Key}", p.Value ?? DBNull.Value)).ToArray();
+
+                using var connection = new SqlConnection(Db.Database.GetConnectionString());
+                using var command = new SqlCommand(procedureName, connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                command.Parameters.AddRange(sqlParameters);
+
+                using var adapter = new SqlDataAdapter(command);
+                var dataTable = new DataTable();
+                adapter.Fill(dataTable);
+
+                return Task.FromResult(dataTable);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al llamar el stored procedure (DataTable): {ProcedureName}", procedureName);
                 throw;
             }
         }
