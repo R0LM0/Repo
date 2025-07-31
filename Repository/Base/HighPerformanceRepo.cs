@@ -402,10 +402,11 @@ namespace Repo.Repository.Base
 
                 return new PagedResult<T>
                 {
-                    Items = items,
+                    Data = items,
                     TotalCount = totalCount,
-                    PageNumber = request.PageNumber,
-                    PageSize = request.PageSize
+                    Page = request.PageNumber,
+                    PageSize = request.PageSize,
+                    TotalPages = totalPages
                 };
             }
             catch (Exception ex)

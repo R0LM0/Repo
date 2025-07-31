@@ -1,0 +1,209 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Repo</name>
+    </assembly>
+    <members>
+        <member name="T:Repo.Repository.Base.HighPerformanceRepo`2">
+            <summary>
+            Repositorio optimizado para alto rendimiento - miles de transacciones por segundo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.IHighPerformanceRepo`1">
+            <summary>
+            Interfaz para operaciones de alto rendimiento optimizada para miles de transacciones por segundo
+            </summary>
+            <typeparam name="T">Tipo de entidad</typeparam>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkInsertAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Inserta miles de registros de forma optimizada usando bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkUpdateAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Actualiza miles de registros de forma optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkDeleteAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Elimina miles de registros de forma optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkDeleteAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Elimina registros por predicado usando bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkMergeAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Operación de merge (insert/update) optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ProcessBatchAsync``1(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Func{System.Collections.Generic.IEnumerable{`0},System.Threading.Tasks.Task{``0}},System.Int32,System.Int32)">
+            <summary>
+            Procesa grandes volúmenes de datos en lotes para evitar problemas de memoria
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ProcessParallelAsync``1(System.Collections.Generic.IEnumerable{`0},System.Func{`0,System.Threading.Tasks.Task{``0}},System.Int32)">
+            <summary>
+            Procesa datos en paralelo con control de concurrencia
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.StreamAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Int32)">
+            <summary>
+            Obtiene datos en streaming para evitar cargar todo en memoria
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.GetPagedOptimizedAsync(Repo.Repository.Models.PagedRequest,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Obtiene datos paginados optimizados para grandes volúmenes
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteWithMetricsAsync(System.Func{System.Threading.Tasks.Task})">
+            <summary>
+            Ejecuta operación con métricas de rendimiento
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteWithMetricsAsync``1(System.Func{System.Threading.Tasks.Task{``0}})">
+            <summary>
+            Ejecuta operación con métricas de rendimiento y retorna resultado
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ConfigureForHighPerformance(System.Int32,System.Boolean)">
+            <summary>
+            Configura el contexto para operaciones de alto rendimiento
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ClearContextAsync">
+            <summary>
+            Limpia el contexto para liberar memoria
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteInTransactionAsync``1(System.Func{System.Threading.Tasks.Task{``0}},System.Data.IsolationLevel)">
+            <summary>
+            Ejecuta operación en transacción optimizada para grandes volúmenes
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteDistributedTransactionAsync(System.Func{System.Threading.Tasks.Task}[])">
+            <summary>
+            Ejecuta múltiples operaciones en transacción distribuida
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.PerformanceMetrics">
+            <summary>
+            Métricas de rendimiento para monitoreo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.BankingConcurrencyService">
+            <summary>
+            Servicio especializado para manejar concurrencia bancaria con múltiples entidades
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.BankingConcurrencyService.ExecuteBankingOperationAsync``1(System.String,System.Func{System.Threading.Tasks.Task{``0}},Repo.Repository.Services.BankingOperationType,System.TimeSpan)">
+            <summary>
+            Ejecuta operación bancaria con control de concurrencia por entidad
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.BankingConcurrencyService.GetAccountStatusAsync``1(``0,System.String,System.Int32,System.TimeSpan)">
+            <summary>
+            Ejecuta operación de consulta de estado de cuenta optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.BankingConcurrencyService.ProcessPaymentAsync``1(``0,System.String,Repo.Repository.Services.PaymentRequest,System.TimeSpan)">
+            <summary>
+            Ejecuta operación de pago con transacción optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.BankingConcurrencyService.ProcessBulkPaymentsAsync``1(``0,System.String,System.Collections.Generic.List{Repo.Repository.Services.PaymentRequest},System.Int32,System.TimeSpan)">
+            <summary>
+            Ejecuta operación de pago masivo optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.BankingConcurrencyService.GetConcurrencyStats">
+            <summary>
+            Obtiene estadísticas de concurrencia
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.CacheConfigurationService">
+            <summary>
+            Servicio de configuración de caché que permite elegir entre Redis y MemoryCache
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Configura el servicio de caché según la disponibilidad de Redis
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddMemoryCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Configura el servicio de caché forzando el uso de MemoryCache
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddRedisCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
+            <summary>
+            Configura el servicio de caché forzando el uso de Redis
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.HighPerformanceConfigService">
+            <summary>
+            Servicio de configuración para optimizar el rendimiento de la base de datos
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.ConfigureDbContext``1(``0)">
+            <summary>
+            Configura DbContext para alto rendimiento
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.ConfigureSqlConnection(Microsoft.Data.SqlClient.SqlConnection)">
+            <summary>
+            Configura conexión SQL Server para alto rendimiento
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetBulkOperationConfig">
+            <summary>
+            Obtiene configuración optimizada para bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetConcurrencyConfig">
+            <summary>
+            Obtiene configuración de concurrencia
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetCacheConfig">
+            <summary>
+            Obtiene configuración de caché
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetMonitoringConfig">
+            <summary>
+            Obtiene configuración de monitoreo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.BulkOperationConfig">
+            <summary>
+            Configuración para operaciones bulk
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.ConcurrencyConfig">
+            <summary>
+            Configuración de concurrencia
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.CacheConfig">
+            <summary>
+            Configuración de caché
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.MonitoringConfig">
+            <summary>
+            Configuración de monitoreo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.MemoryCacheService">
+            <summary>
+            Implementación de caché en memoria como alternativa a Redis
+            </summary>
+        </member>
+    </members>
+</doc>
