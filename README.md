@@ -1,6 +1,12 @@
-# 🚀 Librería de Repositorio Avanzada para .NET 9
+# 🚀 Librería de Repositorio Avanzada para .NET 8
 
-Una librería completa y optimizada para el patrón Repository con funcionalidades avanzadas para .NET 9.
+Una librería completa y optimizada para el patrón Repository con funcionalidades avanzadas para .NET 8.
+
+## 🗄️ **Soporte Multi-Proveedor**
+
+✅ **SQL Server** - Soporte completo  
+✅ **PostgreSQL** - Soporte completo  
+✅ **Configuración dinámica** - Cambia de proveedor sin cambiar código
 
 ## ✨ Características Principales
 
@@ -26,14 +32,29 @@ Una librería completa y optimizada para el patrón Repository con funcionalidad
 
 ## 📦 Instalación
 
+### Instalación Básica
+
 ```bash
 dotnet add package Microsoft.EntityFrameworkCore
-dotnet add package Microsoft.EntityFrameworkCore.SqlServer
 dotnet add package Microsoft.Extensions.Logging.Abstractions
 dotnet add package Microsoft.Extensions.Caching.StackExchangeRedis
 dotnet add package AutoMapper
 dotnet add package FluentValidation
 ```
+
+### Instalación del Proveedor de Base de Datos
+
+**Para SQL Server:**
+```bash
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+```
+
+**Para PostgreSQL:**
+```bash
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
+```
+
+**Nota:** La librería soporta ambos proveedores. Puedes usar SQL Server, PostgreSQL, o ambos según tus necesidades.
 
 ## 🏗️ Estructura del Proyecto
 
@@ -67,11 +88,54 @@ Repository/
 
 ### 1. Configuración Básica
 
+#### Opción A: Configuración Manual (SQL Server o PostgreSQL)
+
+**Para SQL Server:**
 ```csharp
 // En Program.cs o Startup.cs
-services.AddDbContext<YourDbContext>();
+services.AddDbContext<YourDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 services.AddScoped(typeof(IRepo<>), typeof(RepoBase<,>));
 services.AddScoped<IUnitOfWork, UnitOfWork<YourDbContext>>();
+```
+
+**Para PostgreSQL:**
+```csharp
+// En Program.cs o Startup.cs
+services.AddDbContext<YourDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+services.AddScoped(typeof(IRepo<>), typeof(RepoBase<,>));
+services.AddScoped<IUnitOfWork, UnitOfWork<YourDbContext>>();
+```
+
+#### Opción B: Configuración Dinámica Multi-Proveedor (Recomendado)
+
+```csharp
+// En Program.cs o Startup.cs
+using Repo.Repository.Extensions;
+
+// Configuración automática según appsettings.json
+services.AddDbContextWithProvider<YourDbContext>(builder.Configuration);
+services.AddScoped(typeof(IRepo<>), typeof(RepoBase<,>));
+services.AddScoped<IUnitOfWork, UnitOfWork<YourDbContext>>();
+```
+
+**Configuración en appsettings.json:**
+```json
+{
+  "Database": {
+    "Provider": "PostgreSQL",  // o "SqlServer"
+    "PostgreSQL": {
+      "ConnectionString": "Host=localhost;Database=mydb;Username=postgres;Password=password"
+    },
+    "SqlServer": {
+      "ConnectionString": "Server=localhost;Database=mydb;User Id=sa;Password=password;TrustServerCertificate=true"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=mydb;Username=postgres;Password=password"
+  }
+}
 ```
 
 ### 2. Uso del Repositorio
@@ -318,11 +382,13 @@ var count = await _userRepo.CountAsync(user => user.IsActive);
 ### Configuración Completa en Program.cs
 
 ```csharp
+using Repo.Repository.Extensions;
+using Repo.Repository.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Entity Framework
-builder.Services.AddDbContext<YourDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Entity Framework con soporte multi-proveedor
+builder.Services.AddDbContextWithProvider<YourDbContext>(builder.Configuration);
 
 // Redis Cache
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -337,12 +403,85 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped(typeof(IRepo<>), typeof(RepoBase<,>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork<YourDbContext>>();
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
+builder.Services.AddScoped<DatabaseProviderService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<MappingService>();
 
 // Logging
 builder.Services.AddLogging();
 ```
+
+## 🗄️ Soporte Multi-Proveedor (SQL Server y PostgreSQL)
+
+### Características
+
+✅ **Soporte completo para SQL Server y PostgreSQL**
+✅ **Configuración dinámica mediante appsettings.json**
+✅ **Código agnóstico al proveedor de base de datos**
+✅ **Migraciones independientes por proveedor**
+✅ **Mismo código, múltiples bases de datos**
+
+### Diferencias Importantes
+
+#### Procedimientos Almacenados
+
+**SQL Server:**
+```csharp
+await _repo.ExecuteStoredProcedureNonQueryAsync("EXEC sp_GetUsers @UserId", parameter);
+```
+
+**PostgreSQL:**
+```csharp
+await _repo.ExecuteStoredProcedureNonQueryAsync("CALL sp_get_users(@UserId)", parameter);
+```
+
+#### Tipos de Datos
+
+- **DateTime**: Ambos proveedores soportan `DateTime` y `DateTimeOffset`
+- **Strings**: SQL Server usa `nvarchar(max)`, PostgreSQL usa `text`
+- **Identity/Sequences**: SQL Server usa `IDENTITY`, PostgreSQL usa `SERIAL` o `SEQUENCES`
+
+### Ejemplo de Configuración por Ambiente
+
+**appsettings.Development.json (PostgreSQL):**
+```json
+{
+  "Database": {
+    "Provider": "PostgreSQL",
+    "PostgreSQL": {
+      "ConnectionString": "Host=localhost;Database=portfolio_dev;Username=postgres;Password=dev123"
+    }
+  }
+}
+```
+
+**appsettings.Production.json (SQL Server):**
+```json
+{
+  "Database": {
+    "Provider": "SqlServer",
+    "SqlServer": {
+      "ConnectionString": "Server=prod-server;Database=portfolio;User Id=appuser;Password=***;TrustServerCertificate=true"
+    }
+  }
+}
+```
+
+### Migraciones
+
+**Para SQL Server:**
+```bash
+dotnet ef migrations add InitialCreate --context YourDbContext
+dotnet ef database update --context YourDbContext
+```
+
+**Para PostgreSQL:**
+```bash
+dotnet ef migrations add InitialCreate --context YourDbContext
+dotnet ef database update --context YourDbContext
+```
+
+**Nota:** Las migraciones se generan automáticamente según el proveedor configurado en `appsettings.json`.
 
 ## 📊 Rendimiento y Optimización
 
@@ -421,6 +560,26 @@ public async Task GetPagedAsync_ShouldReturnPagedResults()
 }
 ```
 
+## 📝 Notas Importantes sobre Multi-Proveedor
+
+### Compatibilidad de Código
+
+✅ **Totalmente compatible**: La mayoría del código funciona igual en ambos proveedores
+⚠️ **Procedimientos almacenados**: Requieren sintaxis específica del proveedor
+⚠️ **Funciones SQL**: Algunas funciones difieren (GETDATE() vs NOW(), etc.)
+⚠️ **Tipos de datos**: Algunos tipos tienen diferencias menores
+
+### Mejores Prácticas
+
+1. **Usa EF Core siempre que sea posible**: Evita SQL crudo para máxima portabilidad
+2. **Configuración por ambiente**: Usa diferentes proveedores en dev/prod según necesidades
+3. **Migraciones separadas**: Considera crear migraciones específicas por proveedor si usas SQL específico
+4. **Pruebas**: Prueba tu código con ambos proveedores si planeas soportar ambos
+
+### Ejemplo de appsettings.json
+
+Ver `appsettings.example.json` en la raíz del proyecto para un ejemplo completo de configuración.
+
 ## 📝 Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
@@ -435,4 +594,4 @@ Si tienes alguna pregunta o necesitas ayuda, por favor abre un issue en el repos
 
 ---
 
-**¡Disfruta usando esta librería de repositorio avanzada! 🚀**
+**¡Disfruta usando esta librería de repositorio avanzada con soporte multi-proveedor! 🚀**

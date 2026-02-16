@@ -107,8 +107,15 @@ namespace Repo.Repository.Services
                     WHERE c.CustomerId = @CustomerId
                     GROUP BY c.CustomerId, c.AccountNumber, c.Balance, c.DueDate, c.Status";
 
+                // Crear parámetro agnóstico al proveedor usando DbParameter
+                var connection = context.Database.GetDbConnection();
+                var command = connection.CreateCommand();
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@CustomerId";
+                parameter.Value = customerId;
+                
                 var result = await context.Set<AccountStatusResult>()
-                    .FromSqlRaw(sql, new Microsoft.Data.SqlClient.SqlParameter("@CustomerId", customerId))
+                    .FromSqlRaw(sql, parameter)
                     .FirstOrDefaultAsync();
 
                 return result ?? new AccountStatusResult { CustomerId = customerId, Status = "Not Found" };

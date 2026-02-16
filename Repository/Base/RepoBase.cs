@@ -1,4 +1,3 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
@@ -6,6 +5,7 @@ using Repo.Repository.Extensions;
 using Repo.Repository.Interfaces;
 using Repo.Repository.Models;
 using Repo.Repository.Specifications;
+using System.Data.Common;
 using System.Linq.Expressions;
 
 namespace Repo.Repository.Base
@@ -74,6 +74,14 @@ namespace Repo.Repository.Base
 
         #region Métodos Sincrónicos
         public T Find(int? id)
+        {
+            var entity = Table.Find(id);
+            if (entity == null)
+                throw new Exception("Entidad no encontrada.");
+            return entity;
+        }
+
+        public T Find(long? id)
         {
             var entity = Table.Find(id);
             if (entity == null)
@@ -175,6 +183,22 @@ namespace Repo.Repository.Base
             }
         }
 
+        public async Task<T> GetById(long id)
+        {
+            try
+            {
+                var entity = await Table.FindAsync(id);
+                if (entity == null)
+                    throw new Exception("Entidad no encontrada.");
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en GetById para {Entity} id: {Id}", typeof(T).Name, id);
+                throw;
+            }
+        }
+
         public async Task<T> Insert(T entity)
         {
             try
@@ -222,6 +246,23 @@ namespace Repo.Repository.Base
             }
         }
 
+        public async Task DeleteAsync(long id)
+        {
+            try
+            {
+                var entity = await GetById(id);
+                if (entity == null)
+                    throw new Exception("Entidad no encontrada.");
+                Table.Remove(entity);
+                await Db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en DeleteAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<TResult>> ExecuteStoredProcedureAsync<TResult>(string storedProcedure, params object[] parameters) where TResult : class
         {
             if (string.IsNullOrWhiteSpace(storedProcedure))
@@ -246,16 +287,34 @@ namespace Repo.Repository.Base
             try
             {
                 // Si el stored procedure incluye la palabra EXEC o @, trátalo como SQL directo
-                if (storedProcedure.Contains("EXEC") || storedProcedure.Contains("@"))
+                // Nota: EXEC es específico de SQL Server, PostgreSQL usa CALL
+                if (storedProcedure.Contains("EXEC") || storedProcedure.Contains("@") || storedProcedure.Contains("CALL"))
                 {
                     return await Db.Database.ExecuteSqlRawAsync(storedProcedure, parameters);
                 }
                 else
                 {
                     // Si es solo el nombre del SP, construye la llamada
-                    var paramPlaceholders = string.Join(", ", parameters.OfType<SqlParameter>().Select(p => p.ParameterName));
-                    var fullCommand = $"EXEC {storedProcedure} {paramPlaceholders}";
-                    return await Db.Database.ExecuteSqlRawAsync(fullCommand, parameters);
+                    // Usar DbParameter para soportar múltiples proveedores
+                    var dbParameters = parameters.OfType<DbParameter>().ToList();
+                    if (dbParameters.Any())
+                    {
+                        var paramPlaceholders = string.Join(", ", dbParameters.Select(p => p.ParameterName));
+                        // Detectar proveedor por el tipo de conexión
+                        var connection = Db.Database.GetDbConnection();
+                        var isPostgreSQL = connection.GetType().Name.Contains("Npgsql");
+                        
+                        var fullCommand = isPostgreSQL 
+                            ? $"CALL {storedProcedure}({paramPlaceholders})"
+                            : $"EXEC {storedProcedure} {paramPlaceholders}";
+                        
+                        return await Db.Database.ExecuteSqlRawAsync(fullCommand, parameters);
+                    }
+                    else
+                    {
+                        // Si no hay parámetros DbParameter, ejecutar directamente
+                        return await Db.Database.ExecuteSqlRawAsync(storedProcedure, parameters);
+                    }
                 }
             }
             catch (Exception ex)
@@ -544,6 +603,20 @@ namespace Repo.Repository.Base
             }
         }
 
+        public async Task<int> SoftDeleteAsync(long id, string? deletedBy = null)
+        {
+            try
+            {
+                var entity = await GetById(id);
+                return await SoftDeleteAsync(entity, deletedBy);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en SoftDeleteAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                throw;
+            }
+        }
+
         public async Task<int> SoftDeleteAsync(T entity, string? deletedBy = null)
         {
             try
@@ -614,10 +687,42 @@ namespace Repo.Repository.Base
                 throw;
             }
         }
+
+        public async Task<int> RestoreAsync(long id)
+        {
+            try
+            {
+                var entity = await GetById(id);
+                if (entity is ISoftDelete softDeleteEntity)
+                {
+                    softDeleteEntity.IsDeleted = false;
+                    softDeleteEntity.DeletedAt = null;
+                    softDeleteEntity.DeletedBy = null;
+
+                    Db.Entry(entity).State = EntityState.Modified;
+                    return await Db.SaveChangesAsync();
+                }
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en RestoreAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                throw;
+            }
+        }
         #endregion
 
         #region NUEVOS MÉTODOS - Caché
         public async Task<T?> GetByIdWithCacheAsync(int id, TimeSpan? cacheExpiration = null)
+        {
+            if (CacheService == null)
+                return await GetById(id);
+
+            var cacheKey = $"{typeof(T).Name}:{id}";
+            return await CacheService.GetOrSetAsync(cacheKey, async () => await GetById(id), cacheExpiration);
+        }
+
+        public async Task<T?> GetByIdWithCacheAsync(long id, TimeSpan? cacheExpiration = null)
         {
             if (CacheService == null)
                 return await GetById(id);

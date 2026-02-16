@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using System.Data;
+using Npgsql;
 
 namespace Repo.Repository.Services
 {
@@ -47,6 +48,11 @@ namespace Repo.Repository.Services
                 {
                     ConfigureSqlConnection(sqlConnection);
                 }
+                // Configuraciones específicas para PostgreSQL
+                else if (connection is Npgsql.NpgsqlConnection npgsqlConnection)
+                {
+                    ConfigureNpgsqlConnection(npgsqlConnection);
+                }
 
                 _logger.LogInformation("DbContext configurado para alto rendimiento");
             }
@@ -85,6 +91,42 @@ namespace Repo.Repository.Services
                 // Configuraciones de seguridad (ajustar según necesidades)
                 IntegratedSecurity = false,
                 PersistSecurityInfo = false
+            };
+
+            // Aplicar configuración si es posible
+            if (connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+
+            connection.ConnectionString = connectionStringBuilder.ConnectionString;
+        }
+
+        /// <summary>
+        /// Configura conexión PostgreSQL para alto rendimiento
+        /// </summary>
+        private void ConfigureNpgsqlConnection(Npgsql.NpgsqlConnection connection)
+        {
+            // Configuraciones de conexión para alto rendimiento en PostgreSQL
+            var connectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(connection.ConnectionString)
+            {
+                // Pool de conexiones optimizado
+                MaxPoolSize = 200,
+                MinPoolSize = 10,
+                Pooling = true,
+
+                // Configuraciones de rendimiento
+                Enlist = false,
+                Timeout = 30,
+                CommandTimeout = 300,
+
+                // Configuraciones de red
+                KeepAlive = 60,
+                TcpKeepAlive = true,
+
+                // Configuraciones de memoria
+                ReadBufferSize = 8192,
+                WriteBufferSize = 8192
             };
 
             // Aplicar configuración si es posible
