@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
@@ -10,13 +10,13 @@
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
-    <PackageId>AdvancedRepository.NET9</PackageId>
+    <NoWarn>$(NoWarn);1591;NU1903</NoWarn>
+    <PackageId>AdvancedRepository.NET8</PackageId>
     <Version>1.0.0</Version>
     <Authors>Lenin Osorio Martinez - r0lm0 </Authors>
     <Company>freelance</Company>
-    <Description>Librería avanzada de repositorio para .NET 9 con funcionalidades de caché, validación, mapeo y especificaciones</Description>
-    <PackageTags>repository;entity-framework;net9;caching;validation;automapper;specification-pattern</PackageTags>
+    <Description>Librería avanzada de repositorio para .NET 8 con funcionalidades de caché, validación, mapeo y especificaciones</Description>
+    <PackageTags>repository;entity-framework;net8;caching;validation;automapper;specification-pattern</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <LangVersion>latest</LangVersion>
@@ -40,28 +40,31 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.6" />
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.12" />
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="FluentValidation" Version="11.9.0" />
     <!-- Optimizaciones para alto rendimiento -->
-    <PackageReference Include="EFCore.BulkExtensions" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
+    <PackageReference Include="EFCore.BulkExtensions" Version="8.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.12" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Examples/**" />
     <Compile Remove="EjemploAPI/**" />
+    <Compile Remove="Repo.Tests/**" />
     <EmbeddedResource Remove="Examples/**" />
     <EmbeddedResource Remove="EjemploAPI/**" />
+    <EmbeddedResource Remove="Repo.Tests/**" />
     <None Remove="Examples/**" />
     <None Remove="EjemploAPI/**" />
+    <None Remove="Repo.Tests/**" />
   </ItemGroup>
 
   <ItemGroup>
