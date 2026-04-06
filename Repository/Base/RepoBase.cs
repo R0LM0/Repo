@@ -713,7 +713,7 @@ namespace Repo.Repository.Base
                 }
                 else
                 {
-                    return await GetAllAsync(cancellationToken);
+                    return await GetAllAsync(false, cancellationToken);
                 }
             }
             catch (Exception ex)
@@ -792,10 +792,10 @@ namespace Repo.Repository.Base
         public async Task<IEnumerable<T>> GetAllWithCacheAsync(TimeSpan? cacheExpiration = null, CancellationToken cancellationToken = default)
         {
             if (CacheService == null)
-                return await GetAllAsync(cancellationToken);
+                return await GetAllAsync(false, cancellationToken);
 
             var cacheKey = $"{typeof(T).Name}:All";
-            return await CacheService.GetOrSetAsync(cacheKey, async () => await GetAllAsync(cancellationToken), cacheExpiration);
+            return await CacheService.GetOrSetAsync(cacheKey, async () => await GetAllAsync(false, cancellationToken), cacheExpiration);
         }
 
         public async Task InvalidateCacheAsync(string pattern = "*", CancellationToken cancellationToken = default)
