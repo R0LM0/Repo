@@ -120,11 +120,11 @@ namespace Repo.Repository.Base
             return entity;
         }
 
-        public IEnumerable<T> GetAll() => Table.ToList();
+        public IEnumerable<T> GetAll(bool asNoTracking = false) => asNoTracking ? Table.AsNoTracking().ToList() : Table.ToList();
 
-        public IEnumerable<T> GetAll(int id)
+        public IEnumerable<T> GetAll(int id, bool asNoTracking = false)
         {
-            return Table.ToList();
+            return asNoTracking ? Table.AsNoTracking().ToList() : Table.ToList();
         }
 
         public int Add(T entity, bool persist = true)
@@ -172,11 +172,12 @@ namespace Repo.Repository.Base
                 throw;
             }
         }
-        public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
+        public virtual async Task<IEnumerable<T>> GetAllAsync(bool asNoTracking = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await Table.ToListAsync(cancellationToken);
+                var query = asNoTracking ? Table.AsNoTracking() : Table;
+                return await query.ToListAsync(cancellationToken);
             }
             catch (Exception ex)
             {
@@ -184,11 +185,12 @@ namespace Repo.Repository.Base
                 throw;
             }
         }
-        public virtual async Task<IEnumerable<T>> GetAllAsync(int id, CancellationToken cancellationToken = default)
+        public virtual async Task<IEnumerable<T>> GetAllAsync(int id, bool asNoTracking = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await Table.ToListAsync(cancellationToken);
+                var query = asNoTracking ? Table.AsNoTracking() : Table;
+                return await query.ToListAsync(cancellationToken);
             }
             catch (Exception ex)
             {
@@ -514,11 +516,12 @@ namespace Repo.Repository.Base
         #endregion
 
         #region NUEVOS MÉTODOS - Búsqueda Avanzada
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await Table.Where(predicate).ToListAsync(cancellationToken);
+                var query = asNoTracking ? Table.AsNoTracking().Where(predicate) : Table.Where(predicate);
+                return await query.ToListAsync(cancellationToken);
             }
             catch (Exception ex)
             {
@@ -527,12 +530,13 @@ namespace Repo.Repository.Base
             }
         }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes)
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes)
         {
             try
             {
                 var query = Table.Where(predicate);
                 query = includes.Aggregate(query, (current, include) => current.Include(include));
+                if (asNoTracking) query = query.AsNoTracking();
                 return await query.ToListAsync(cancellationToken);
             }
             catch (Exception ex)
@@ -542,11 +546,12 @@ namespace Repo.Repository.Base
             }
         }
 
-        public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await Table.FirstOrDefaultAsync(predicate, cancellationToken);
+                var query = asNoTracking ? Table.AsNoTracking() : Table;
+                return await query.FirstOrDefaultAsync(predicate, cancellationToken);
             }
             catch (Exception ex)
             {
