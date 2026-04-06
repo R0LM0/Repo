@@ -10,6 +10,26 @@ using System.Linq.Expressions;
 
 namespace Repo.Repository.Base
 {
+    /// <summary>
+    /// Base repository implementation for entity operations.
+    /// 
+    /// IMPORTANT: Transaction Management Change
+    /// - Repository-level transaction methods are OBSOLETE
+    /// - Use IUnitOfWork for all transaction orchestration
+    /// - Repositories obtained via unitOfWork.Repository<T>() automatically participate in UnitOfWork transactions
+    /// 
+    /// Recommended Usage:
+    ///     using var unitOfWork = new UnitOfWork&lt;MyContext&gt;(context, logger);
+    ///     await unitOfWork.BeginTransactionAsync();
+    ///     try {
+    ///         var repo = unitOfWork.Repository&lt;MyEntity&gt;();
+    ///         await repo.Insert(entity);
+    ///         await unitOfWork.CommitTransactionAsync();
+    ///     } catch {
+    ///         await unitOfWork.RollbackTransactionAsync();
+    ///         throw;
+    ///     }
+    /// </summary>
     public class RepoBase<T, TContext> : IDisposable, IRepo<T>
        where T : class
        where TContext : DbContext
@@ -29,42 +49,49 @@ namespace Repo.Repository.Base
             Table = Db.Set<T>();
         }
 
-        // Constructor opcional que recibe transacción
+        // Constructor opcional que recibe transacción - OBSOLETO: Use UnitOfWork pattern instead
+        [Obsolete("Constructor with transaction is deprecated. Use UnitOfWork to manage transactions and obtain repositories.", false)]
         public RepoBase(TContext context, IDbContextTransaction transaction, ILogger logger, ICacheService? cacheService = null)
             : this(context, logger, cacheService)
         {
             _transaction = transaction;
         }
 
-        #region Transacciones
+        #region Transacciones - OBSOLETOS: Usar UnitOfWork en su lugar
+        [Obsolete("Use IUnitOfWork.BeginTransaction() instead. Repository-level transaction methods are deprecated.", false)]
         public void BeginTransaction()
         {
             if (_transaction == null)
                 _transaction = Db.Database.BeginTransaction();
         }
 
+        [Obsolete("Use IUnitOfWork.BeginTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
         public async Task BeginTransactionAsync()
         {
             if (_transaction == null)
                 _transaction = await Db.Database.BeginTransactionAsync();
         }
 
+        [Obsolete("Use IUnitOfWork.CommitTransaction() instead. Repository-level transaction methods are deprecated.", false)]
         public void CommitTransaction()
         {
             _transaction?.Commit();
         }
 
+        [Obsolete("Use IUnitOfWork.CommitTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
         public async Task CommitTransactionAsync()
         {
             if (_transaction != null)
                 await _transaction.CommitAsync();
         }
 
+        [Obsolete("Use IUnitOfWork.RollbackTransaction() instead. Repository-level transaction methods are deprecated.", false)]
         public void RollbackTransaction()
         {
             _transaction?.Rollback();
         }
 
+        [Obsolete("Use IUnitOfWork.RollbackTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
         public async Task RollbackTransactionAsync()
         {
             if (_transaction != null)
@@ -261,6 +288,46 @@ namespace Repo.Repository.Base
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Error al ejecutar el procedimiento almacenado (non query) {Procedure} para {Entity}", storedProcedure, typeof(T).Name);
+                throw;
+            }
+        }
+
+        // NUEVOS MÉTODOS - Funciones de Base de Datos
+        public async Task<TResult> ExecuteScalarFunctionAsync<TResult>(string functionName, params object[] parameters)
+        {
+            if (string.IsNullOrWhiteSpace(functionName))
+                throw new ArgumentException("El nombre de la función no puede estar vacío.", nameof(functionName));
+
+            try
+            {
+                var paramPlaceholders = string.Join(", ", parameters.Select((p, i) => $"@p{i}"));
+                var sql = $"SELECT {functionName}({paramPlaceholders})";
+                
+                var result = await Db.Database.SqlQueryRaw<TResult>(sql, parameters).FirstOrDefaultAsync();
+                return result!;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al ejecutar la función escalar {Function} para {Entity}", functionName, typeof(T).Name);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<TResult>> ExecuteTableValuedFunctionAsync<TResult>(string functionName, params object[] parameters) where TResult : class
+        {
+            if (string.IsNullOrWhiteSpace(functionName))
+                throw new ArgumentException("El nombre de la función no puede estar vacío.", nameof(functionName));
+
+            try
+            {
+                var paramPlaceholders = string.Join(", ", parameters.Select((p, i) => $"@p{i}"));
+                var sql = $"SELECT * FROM {functionName}({paramPlaceholders})";
+                
+                return await Db.Set<TResult>().FromSqlRaw(sql, parameters).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error al ejecutar la función con valores de tabla {Function} para {Entity}", functionName, typeof(T).Name);
                 throw;
             }
         }
