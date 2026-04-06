@@ -83,7 +83,9 @@ namespace Repo.Repository.Base
 
         public T Find(long? id)
         {
-            var entity = Table.Find(id);
+            if (!id.HasValue)
+                throw new ArgumentNullException(nameof(id));
+            var entity = Table.Find((int)id.Value);
             if (entity == null)
                 throw new Exception("Entidad no encontrada.");
             return entity;
@@ -187,7 +189,7 @@ namespace Repo.Repository.Base
         {
             try
             {
-                var entity = await Table.FindAsync(id);
+                var entity = await Table.FindAsync((int)id);
                 if (entity == null)
                     throw new Exception("Entidad no encontrada.");
                 return entity;

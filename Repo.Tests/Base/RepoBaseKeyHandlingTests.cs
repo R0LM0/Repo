@@ -41,7 +41,6 @@ namespace Repo.Tests.Base
         }
 
         [Test]
-        [Ignore("Known issue: RepoBase long overloads don't properly convert to int. See Issue #5 follow-up.")]
         public void RepoBase_HasIntAndLongOverload_Find()
         {
             // Arrange
@@ -62,7 +61,6 @@ namespace Repo.Tests.Base
         }
 
         [Test]
-        [Ignore("Known issue: RepoBase long overloads don't properly convert to int. See Issue #5 follow-up.")]
         public async Task RepoBase_HasIntAndLongOverload_GetById()
         {
             // Arrange
