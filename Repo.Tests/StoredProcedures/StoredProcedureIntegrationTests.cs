@@ -41,6 +41,7 @@ namespace Repo.Tests.StoredProcedures
         [TearDown]
         public void TearDown()
         {
+            _repo.Dispose();
             _context.Database.CloseConnection();
             _context.Dispose();
         }
@@ -52,7 +53,7 @@ namespace Repo.Tests.StoredProcedures
             var sql = "SELECT * FROM TestEntities WHERE Value > {0}";
 
             // Act
-            var results = await _repo.ExecuteStoredProcedureAsync<TestEntity>(sql, 150);
+            var results = await _repo.ExecuteStoredProcedureAsync<TestEntity>(sql, default, 150);
 
             // Assert
             Assert.That(results, Is.Not.Null);
@@ -68,7 +69,7 @@ namespace Repo.Tests.StoredProcedures
             var sql = "SELECT * FROM TestEntities WHERE Name = {0}";
 
             // Act
-            var results = await _repo.ExecuteStoredProcedureAsync<TestEntity>(sql, "Entity1");
+            var results = await _repo.ExecuteStoredProcedureAsync<TestEntity>(sql, default, "Entity1");
 
             // Assert
             Assert.That(results, Is.Not.Null);
@@ -129,7 +130,7 @@ namespace Repo.Tests.StoredProcedures
         {
             // Act & Assert
             var ex = Assert.ThrowsAsync<ArgumentException>(async () =>
-                await _repo.ExecuteStoredProcedureAsync<TestEntity>("", 1));
+                await _repo.ExecuteStoredProcedureAsync<TestEntity>("", default, 1));
             
             Assert.That(ex!.ParamName, Is.EqualTo("storedProcedure"));
         }

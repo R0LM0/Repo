@@ -21,16 +21,16 @@ namespace Repo.Repository.Base
     {
         T Find(int? id);   //Metodo para buscar por ID
         T Find(long? id);  // Metodo para buscar por ID (BigInt/long)
-        IEnumerable<T> GetAll(); //Metodo Obtener todo
-        IEnumerable<T> GetAll(int id); //Metodo Obtener todo
+        IEnumerable<T> GetAll(bool asNoTracking = false); //Metodo Obtener todo
+        IEnumerable<T> GetAll(int id, bool asNoTracking = false); //Metodo Obtener todo
         int Add(T entity, bool persist = true);// Bool persist es un parametro opcional 
         int Update(T entity, bool persist = true);  //Metodo para Actualizar
         int Delete(T entity, bool persist = true);  //Metodo para Borrar
         int Save();//Metodo para Salvar
 
         // Métodos asíncronos
-        Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task<IEnumerable<T>> GetAllAsync(int id, CancellationToken cancellationToken = default);
+        Task<IEnumerable<T>> GetAllAsync(bool asNoTracking = false, CancellationToken cancellationToken = default);
+        Task<IEnumerable<T>> GetAllAsync(int id, bool asNoTracking = false, CancellationToken cancellationToken = default);
         Task<T> GetById(int id, CancellationToken cancellationToken = default);
         Task<T> GetById(long id, CancellationToken cancellationToken = default);
         Task<T> Insert(T entity, CancellationToken cancellationToken = default);
@@ -73,9 +73,9 @@ namespace Repo.Repository.Base
         Task<int> CountBySpecAsync(ISpecification<T> spec, CancellationToken cancellationToken = default);
 
         // NUEVOS MÉTODOS - Búsqueda Avanzada
-        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
-        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes);
-        Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default);
+        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes);
+        Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default);
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
         Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
 
