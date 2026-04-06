@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
+using Repo.Repository.Exceptions;
 using Repo.Repository.Extensions;
 using Repo.Repository.Interfaces;
 using Repo.Repository.Models;
@@ -105,7 +106,7 @@ namespace Repo.Repository.Base
         {
             var entity = Table.Find(id);
             if (entity == null)
-                throw new Exception("Entidad no encontrada.");
+                throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
             return entity;
         }
 
@@ -115,7 +116,7 @@ namespace Repo.Repository.Base
                 throw new ArgumentNullException(nameof(id));
             var entity = Table.Find((int)id.Value);
             if (entity == null)
-                throw new Exception("Entidad no encontrada.");
+                throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
             return entity;
         }
 
@@ -203,7 +204,7 @@ namespace Repo.Repository.Base
             {
                 var entity = await Table.FindAsync(new object[] { id }, cancellationToken);
                 if (entity == null)
-                    throw new Exception("Entidad no encontrada.");
+                    throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
                 return entity;
             }
             catch (Exception ex)
@@ -219,7 +220,7 @@ namespace Repo.Repository.Base
             {
                 var entity = await Table.FindAsync(new object[] { (int)id }, cancellationToken);
                 if (entity == null)
-                    throw new Exception("Entidad no encontrada.");
+                    throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
                 return entity;
             }
             catch (Exception ex)
@@ -265,7 +266,7 @@ namespace Repo.Repository.Base
             {
                 var entity = await GetById(id, cancellationToken);
                 if (entity == null)
-                    throw new Exception("Entidad no encontrada.");
+                    throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
                 Table.Remove(entity);
                 await Db.SaveChangesAsync(cancellationToken);
             }
@@ -282,7 +283,7 @@ namespace Repo.Repository.Base
             {
                 var entity = await GetById(id, cancellationToken);
                 if (entity == null)
-                    throw new Exception("Entidad no encontrada.");
+                    throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
                 Table.Remove(entity);
                 await Db.SaveChangesAsync(cancellationToken);
             }
