@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Repo.Repository.Base;
 using Repo.Repository.Interfaces;
+using System.Data;
 
 namespace Repo.Repository.UnitOfWork
 {
@@ -17,6 +18,16 @@ namespace Repo.Repository.UnitOfWork
 
         public TContext Context => _context;
 
+        /// <summary>
+        /// Gets the current database transaction if one is active.
+        /// </summary>
+        public IDbContextTransaction? CurrentTransaction => _transaction;
+
+        /// <summary>
+        /// Returns true if a transaction is currently active.
+        /// </summary>
+        public bool HasActiveTransaction => _transaction != null;
+
         public UnitOfWork(TContext context, ILogger<UnitOfWork<TContext>> logger, ICacheService? cacheService = null)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -25,6 +36,10 @@ namespace Repo.Repository.UnitOfWork
             _repositories = new Dictionary<Type, object>();
         }
 
+        /// <summary>
+        /// Gets a repository for the specified entity type.
+        /// Repositories participate in the UnitOfWork's transaction scope automatically.
+        /// </summary>
         public IRepo<T> Repository<T>() where T : class
         {
             var type = typeof(T);
@@ -32,6 +47,7 @@ namespace Repo.Repository.UnitOfWork
             if (!_repositories.ContainsKey(type))
             {
                 var repositoryType = typeof(RepoBase<T, TContext>);
+                // Repositories no longer receive transaction directly - they use the shared context
                 var repository = Activator.CreateInstance(repositoryType, _context, _logger, _cacheService);
                 _repositories[type] = repository!;
             }
@@ -39,6 +55,9 @@ namespace Repo.Repository.UnitOfWork
             return (IRepo<T>)_repositories[type];
         }
 
+        /// <summary>
+        /// Saves all pending changes to the database.
+        /// </summary>
         public async Task<int> SaveChangesAsync()
         {
             try
@@ -54,15 +73,44 @@ namespace Repo.Repository.UnitOfWork
             }
         }
 
+        /// <summary>
+        /// Begins a new database transaction.
+        /// This is the PRIMARY method for starting transactions.
+        /// </summary>
         public async Task BeginTransactionAsync()
         {
             if (_transaction == null)
             {
                 _transaction = await _context.Database.BeginTransactionAsync();
-                _logger.LogInformation("Database transaction started");
+                _logger.LogInformation("Database transaction started with default isolation level");
+            }
+            else
+            {
+                _logger.LogDebug("Transaction already active, reusing existing transaction");
             }
         }
 
+        /// <summary>
+        /// Begins a new database transaction with specified isolation level.
+        /// </summary>
+        /// <param name="isolationLevel">The isolation level for the transaction.</param>
+        public async Task BeginTransactionAsync(IsolationLevel isolationLevel)
+        {
+            if (_transaction == null)
+            {
+                _transaction = await _context.Database.BeginTransactionAsync(isolationLevel);
+                _logger.LogInformation("Database transaction started with isolation level: {IsolationLevel}", isolationLevel);
+            }
+            else
+            {
+                _logger.LogDebug("Transaction already active (isolation level: {ExistingLevel}), reusing existing transaction", 
+                    _transaction.GetDbTransaction().IsolationLevel);
+            }
+        }
+
+        /// <summary>
+        /// Commits the current transaction.
+        /// </summary>
         public async Task CommitTransactionAsync()
         {
             if (_transaction != null)
@@ -72,8 +120,15 @@ namespace Repo.Repository.UnitOfWork
                 _transaction = null;
                 _logger.LogInformation("Database transaction committed");
             }
+            else
+            {
+                _logger.LogWarning("CommitTransactionAsync called but no active transaction");
+            }
         }
 
+        /// <summary>
+        /// Rolls back the current transaction.
+        /// </summary>
         public async Task RollbackTransactionAsync()
         {
             if (_transaction != null)
@@ -82,6 +137,10 @@ namespace Repo.Repository.UnitOfWork
                 await _transaction.DisposeAsync();
                 _transaction = null;
                 _logger.LogInformation("Database transaction rolled back");
+            }
+            else
+            {
+                _logger.LogWarning("RollbackTransactionAsync called but no active transaction");
             }
         }
 
