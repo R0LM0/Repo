@@ -15,7 +15,7 @@ namespace Repo.Repository.Base
     /// IMPORTANT: Transaction Management Consolidation
     /// - Transaction methods (BeginTransaction, CommitTransaction, RollbackTransaction) are OBSOLETE
     /// - Use UnitOfWork for all transaction orchestration instead
-    /// - Repositories obtained via IUnitOfWork.Repository<T>() automatically participate in UnitOfWork transactions
+    /// - Repositories obtained via IUnitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
     /// </summary>
     public interface IRepo<T> where T : class
     {

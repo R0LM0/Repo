@@ -13,7 +13,7 @@ namespace Repo.Repository.UnitOfWork
     /// Usage Pattern:
     ///     await unitOfWork.BeginTransactionAsync();
     ///     try {
-    ///         // Perform operations via repositories obtained from unitOfWork.Repository<T>()
+    ///         // Perform operations via repositories obtained from unitOfWork.Repository&lt;T&gt;()
     ///         await unitOfWork.CommitTransactionAsync();
     ///     } catch {
     ///         await unitOfWork.RollbackTransactionAsync();

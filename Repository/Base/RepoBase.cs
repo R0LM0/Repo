@@ -17,7 +17,7 @@ namespace Repo.Repository.Base
     /// IMPORTANT: Transaction Management Change
     /// - Repository-level transaction methods are OBSOLETE
     /// - Use IUnitOfWork for all transaction orchestration
-    /// - Repositories obtained via unitOfWork.Repository<T>() automatically participate in UnitOfWork transactions
+    /// - Repositories obtained via unitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
     /// 
     /// Recommended Usage:
     ///     using var unitOfWork = new UnitOfWork&lt;MyContext&gt;(context, logger);
