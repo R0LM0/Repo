@@ -81,6 +81,14 @@ namespace Repo.Repository.Base
             return entity;
         }
 
+        public T Find(long? id)
+        {
+            var entity = Table.Find(id);
+            if (entity == null)
+                throw new Exception("Entidad no encontrada.");
+            return entity;
+        }
+
         public IEnumerable<T> GetAll() => Table.ToList();
 
         public IEnumerable<T> GetAll(int id)
@@ -175,6 +183,22 @@ namespace Repo.Repository.Base
             }
         }
 
+        public async Task<T> GetById(long id)
+        {
+            try
+            {
+                var entity = await Table.FindAsync(id);
+                if (entity == null)
+                    throw new Exception("Entidad no encontrada.");
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en GetById para {Entity} id: {Id}", typeof(T).Name, id);
+                throw;
+            }
+        }
+
         public async Task<T> Insert(T entity)
         {
             try
@@ -206,6 +230,23 @@ namespace Repo.Repository.Base
         }
 
         public async Task DeleteAsync(int id)
+        {
+            try
+            {
+                var entity = await GetById(id);
+                if (entity == null)
+                    throw new Exception("Entidad no encontrada.");
+                Table.Remove(entity);
+                await Db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en DeleteAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                throw;
+            }
+        }
+
+        public async Task DeleteAsync(long id)
         {
             try
             {
@@ -544,6 +585,20 @@ namespace Repo.Repository.Base
             }
         }
 
+        public async Task<int> SoftDeleteAsync(long id, string? deletedBy = null)
+        {
+            try
+            {
+                var entity = await GetById(id);
+                return await SoftDeleteAsync(entity, deletedBy);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en SoftDeleteAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                throw;
+            }
+        }
+
         public async Task<int> SoftDeleteAsync(T entity, string? deletedBy = null)
         {
             try
@@ -614,10 +669,42 @@ namespace Repo.Repository.Base
                 throw;
             }
         }
+
+        public async Task<int> RestoreAsync(long id)
+        {
+            try
+            {
+                var entity = await GetById(id);
+                if (entity is ISoftDelete softDeleteEntity)
+                {
+                    softDeleteEntity.IsDeleted = false;
+                    softDeleteEntity.DeletedAt = null;
+                    softDeleteEntity.DeletedBy = null;
+
+                    Db.Entry(entity).State = EntityState.Modified;
+                    return await Db.SaveChangesAsync();
+                }
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en RestoreAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                throw;
+            }
+        }
         #endregion
 
         #region NUEVOS MÉTODOS - Caché
         public async Task<T?> GetByIdWithCacheAsync(int id, TimeSpan? cacheExpiration = null)
+        {
+            if (CacheService == null)
+                return await GetById(id);
+
+            var cacheKey = $"{typeof(T).Name}:{id}";
+            return await CacheService.GetOrSetAsync(cacheKey, async () => await GetById(id), cacheExpiration);
+        }
+
+        public async Task<T?> GetByIdWithCacheAsync(long id, TimeSpan? cacheExpiration = null)
         {
             if (CacheService == null)
                 return await GetById(id);

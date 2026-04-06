@@ -11,6 +11,7 @@ namespace Repo.Repository.Base
     public interface IRepo<T> where T : class
     {
         T Find(int? id);   //Metodo para buscar por ID
+        T Find(long? id);  // Metodo para buscar por ID (BigInt/long)
         IEnumerable<T> GetAll(); //Metodo Obtener todo
         IEnumerable<T> GetAll(int id); //Metodo Obtener todo
         int Add(T entity, bool persist = true);// Bool persist es un parametro opcional 
@@ -22,9 +23,11 @@ namespace Repo.Repository.Base
         Task<IEnumerable<T>> GetAllAsync();
         Task<IEnumerable<T>> GetAllAsync(int id); // Metodo para Obtener ID async 
         Task<T> GetById(int id);
+        Task<T> GetById(long id); // Metodo para obtener por ID (BigInt/long) async
         Task<T> Insert(T entity);
         Task<T> UpdateAsync(T entity);
         Task DeleteAsync(int id);
+        Task DeleteAsync(long id); // Metodo para eliminar por ID (BigInt/long) async
         Task<int> SaveAsync();
 
         // Métodos para procedimientos almacenados:
@@ -56,12 +59,15 @@ namespace Repo.Repository.Base
 
         // NUEVOS MÉTODOS - Soft Delete
         Task<int> SoftDeleteAsync(int id, string? deletedBy = null);
+        Task<int> SoftDeleteAsync(long id, string? deletedBy = null); // Soft delete por ID (BigInt/long)
         Task<int> SoftDeleteAsync(T entity, string? deletedBy = null);
         Task<IEnumerable<T>> GetAllIncludingDeletedAsync();
         Task<int> RestoreAsync(int id);
+        Task<int> RestoreAsync(long id); // Restaurar por ID (BigInt/long)
 
         // NUEVOS MÉTODOS - Caché
         Task<T?> GetByIdWithCacheAsync(int id, TimeSpan? cacheExpiration = null);
+        Task<T?> GetByIdWithCacheAsync(long id, TimeSpan? cacheExpiration = null); // GetById con caché por ID (BigInt/long)
         Task<IEnumerable<T>> GetAllWithCacheAsync(TimeSpan? cacheExpiration = null);
         Task InvalidateCacheAsync(string pattern = "*");
     }
