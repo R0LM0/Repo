@@ -15,6 +15,16 @@ namespace Repo.Repository.Base
     /// Transaction Management:
     /// - Use IUnitOfWork for all transaction orchestration
     /// - Repositories obtained via IUnitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
+    /// 
+    /// Retry Policy for Transient Faults:
+    /// - Read operations (GetAllAsync, GetById, FindAsync, GetPagedAsync, GetBySpecAsync, GetAllBySpecAsync) 
+    ///   automatically retry on transient database failures
+    /// - Configure via AddRepositoryRetryPolicy() in DI container during startup
+    /// - Only safe operations are retried. Write operations (Insert, Update, Delete) are NOT retried
+    ///   unless they are explicitly idempotent
+    /// - Default: 3 retries with exponential backoff (200ms, 400ms, 800ms)
+    /// - Handles: SqlException transient errors, TimeoutException, InvalidOperationException (EF Core transient errors)
+    /// - To disable retry globally: services.AddRepositoryRetryPolicy(options => options.EnableRetry = false)
     /// </summary>
     public interface IRepo<T> where T : class
     {

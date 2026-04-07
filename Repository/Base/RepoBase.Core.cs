@@ -21,6 +21,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Repo.Repository.Exceptions;
+using Repo.Repository.Retry;
 using System.Threading;
 
 namespace Repo.Repository.Base
@@ -158,10 +159,19 @@ namespace Repo.Repository.Base
         /// <returns>A list of all entities.</returns>
         public virtual async Task<IEnumerable<T>> GetAllAsync(bool asNoTracking = false, CancellationToken cancellationToken = default)
         {
-            try
+            async Task<IEnumerable<T>> Operation()
             {
                 var query = asNoTracking ? Table.AsNoTracking() : Table;
                 return await query.ToListAsync(cancellationToken);
+            }
+
+            try
+            {
+                if (RetryPolicy != null)
+                {
+                    return await RetryPolicy.ExecuteAsync(Operation, cancellationToken);
+                }
+                return await Operation();
             }
             catch (Exception ex)
             {
@@ -200,12 +210,21 @@ namespace Repo.Repository.Base
         /// <exception cref="EntityNotFoundException">Thrown when entity is not found.</exception>
         public async Task<T> GetById(int id, CancellationToken cancellationToken = default)
         {
-            try
+            async Task<T> Operation()
             {
                 var entity = await Table.FindAsync(new object[] { id }, cancellationToken);
                 if (entity == null)
                     throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
                 return entity;
+            }
+
+            try
+            {
+                if (RetryPolicy != null)
+                {
+                    return await RetryPolicy.ExecuteAsync(Operation, cancellationToken);
+                }
+                return await Operation();
             }
             catch (Exception ex)
             {
@@ -223,12 +242,21 @@ namespace Repo.Repository.Base
         /// <exception cref="EntityNotFoundException">Thrown when entity is not found.</exception>
         public async Task<T> GetById(long id, CancellationToken cancellationToken = default)
         {
-            try
+            async Task<T> Operation()
             {
                 var entity = await Table.FindAsync(new object[] { (int)id }, cancellationToken);
                 if (entity == null)
                     throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
                 return entity;
+            }
+
+            try
+            {
+                if (RetryPolicy != null)
+                {
+                    return await RetryPolicy.ExecuteAsync(Operation, cancellationToken);
+                }
+                return await Operation();
             }
             catch (Exception ex)
             {

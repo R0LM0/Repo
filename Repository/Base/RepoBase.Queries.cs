@@ -32,10 +32,19 @@ namespace Repo.Repository.Base
         /// <returns>A list of matching entities.</returns>
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default)
         {
-            try
+            async Task<IEnumerable<T>> Operation()
             {
                 var query = asNoTracking ? Table.AsNoTracking().Where(predicate) : Table.Where(predicate);
                 return await query.ToListAsync(cancellationToken);
+            }
+
+            try
+            {
+                if (RetryPolicy != null)
+                {
+                    return await RetryPolicy.ExecuteAsync(Operation, cancellationToken);
+                }
+                return await Operation();
             }
             catch (Exception ex)
             {
@@ -54,12 +63,21 @@ namespace Repo.Repository.Base
         /// <returns>A list of matching entities with included relations.</returns>
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes)
         {
-            try
+            async Task<IEnumerable<T>> Operation()
             {
                 var query = Table.Where(predicate);
                 query = includes.Aggregate(query, (current, include) => current.Include(include));
                 if (asNoTracking) query = query.AsNoTracking();
                 return await query.ToListAsync(cancellationToken);
+            }
+
+            try
+            {
+                if (RetryPolicy != null)
+                {
+                    return await RetryPolicy.ExecuteAsync(Operation, cancellationToken);
+                }
+                return await Operation();
             }
             catch (Exception ex)
             {
