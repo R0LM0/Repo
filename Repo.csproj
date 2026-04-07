@@ -16,7 +16,7 @@
     <Authors>Lenin Osorio Martinez - r0lm0 </Authors>
     <Company>freelance</Company>
     <Description>Librería avanzada de repositorio para .NET 8+ con funcionalidades de caché, validación, mapeo y especificaciones</Description>
-    <PackageTags>repository;entity-framework;net8;net9;caching;validation;automapper;specification-pattern</PackageTags>
+    <PackageTags>repository;entity-framework;net8;net9;caching;validation;specification-pattern</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <LangVersion>latest</LangVersion>
@@ -81,12 +81,15 @@
     <Compile Remove="Examples/**" />
     <Compile Remove="EjemploAPI/**" />
     <Compile Remove="Repo.Tests/**" />
+    <Compile Remove="Integrations/**" />
     <EmbeddedResource Remove="Examples/**" />
     <EmbeddedResource Remove="EjemploAPI/**" />
     <EmbeddedResource Remove="Repo.Tests/**" />
+    <EmbeddedResource Remove="Integrations/**" />
     <None Remove="Examples/**" />
     <None Remove="EjemploAPI/**" />
     <None Remove="Repo.Tests/**" />
+    <None Remove="Integrations/**" />
   </ItemGroup>
 
   <ItemGroup>
