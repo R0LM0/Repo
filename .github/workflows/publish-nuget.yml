@@ -27,10 +27,14 @@ jobs:
           9.0.x
     
     - name: Restore dependencies
-      run: dotnet restore Repo.sln
+      run: |
+        dotnet restore Repo.sln
+        dotnet restore Integrations/Repo.Integrations.Mapperly/Repo.Integrations.Mapperly.csproj
     
     - name: Build
-      run: dotnet build Repo.sln --configuration Release --no-restore
+      run: |
+        dotnet build Repo.sln --configuration Release --no-restore
+        dotnet build Integrations/Repo.Integrations.Mapperly/Repo.Integrations.Mapperly.csproj --configuration Release --no-restore
     
     - name: Test
       run: dotnet test Repo.Tests/Repo.Tests.csproj --configuration Release --no-build --verbosity normal
