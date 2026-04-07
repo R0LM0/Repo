@@ -28,6 +28,7 @@ public static class MapperlyServiceExtensions
     /// Registra múltiples mappers de Mapperly.
     /// </summary>
     /// <param name="services">La colección de servicios.</param>
+    /// <param name="mapperTypes">Los tipos de los mappers a registrar.</param>
     /// <returns>La colección de servicios para encadenamiento.</returns>
     public static IServiceCollection AddRepoMappers(this IServiceCollection services, params Type[] mapperTypes)
     {
