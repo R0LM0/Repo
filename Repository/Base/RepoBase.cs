@@ -1,6 +1,5 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Repo.Repository.Exceptions;
 using Repo.Repository.Extensions;
@@ -15,8 +14,7 @@ namespace Repo.Repository.Base
     /// <summary>
     /// Base repository implementation for entity operations.
     /// 
-    /// IMPORTANT: Transaction Management Change
-    /// - Repository-level transaction methods are OBSOLETE
+    /// Transaction Management:
     /// - Use IUnitOfWork for all transaction orchestration
     /// - Repositories obtained via unitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
     /// 
@@ -40,7 +38,6 @@ namespace Repo.Repository.Base
         protected readonly DbSet<T> Table;
         protected readonly ILogger Logger;  // Campo para el logging
         protected readonly ICacheService? CacheService; // Campo para el caché
-        private IDbContextTransaction? _transaction;
         private bool _disposed = false;
 
         public RepoBase(TContext context, ILogger logger, ICacheService? cacheService = null)
@@ -50,56 +47,6 @@ namespace Repo.Repository.Base
             CacheService = cacheService;
             Table = Db.Set<T>();
         }
-
-        // Constructor opcional que recibe transacción - OBSOLETO: Use UnitOfWork pattern instead
-        [Obsolete("Constructor with transaction is deprecated. Use UnitOfWork to manage transactions and obtain repositories.", false)]
-        public RepoBase(TContext context, IDbContextTransaction transaction, ILogger logger, ICacheService? cacheService = null)
-            : this(context, logger, cacheService)
-        {
-            _transaction = transaction;
-        }
-
-        #region Transacciones - OBSOLETOS: Usar UnitOfWork en su lugar
-        [Obsolete("Use IUnitOfWork.BeginTransaction() instead. Repository-level transaction methods are deprecated.", false)]
-        public void BeginTransaction()
-        {
-            if (_transaction == null)
-                _transaction = Db.Database.BeginTransaction();
-        }
-
-        [Obsolete("Use IUnitOfWork.BeginTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        public async Task BeginTransactionAsync()
-        {
-            if (_transaction == null)
-                _transaction = await Db.Database.BeginTransactionAsync();
-        }
-
-        [Obsolete("Use IUnitOfWork.CommitTransaction() instead. Repository-level transaction methods are deprecated.", false)]
-        public void CommitTransaction()
-        {
-            _transaction?.Commit();
-        }
-
-        [Obsolete("Use IUnitOfWork.CommitTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        public async Task CommitTransactionAsync()
-        {
-            if (_transaction != null)
-                await _transaction.CommitAsync();
-        }
-
-        [Obsolete("Use IUnitOfWork.RollbackTransaction() instead. Repository-level transaction methods are deprecated.", false)]
-        public void RollbackTransaction()
-        {
-            _transaction?.Rollback();
-        }
-
-        [Obsolete("Use IUnitOfWork.RollbackTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        public async Task RollbackTransactionAsync()
-        {
-            if (_transaction != null)
-                await _transaction.RollbackAsync();
-        }
-        #endregion
 
         #region Métodos Sincrónicos
         public T Find(int? id)
@@ -443,11 +390,12 @@ namespace Repo.Repository.Base
 
         private IQueryable<T> ApplySearchFilter(IQueryable<T> query, string searchTerm)
         {
-            // Implementación simplificada sin System.Linq.Dynamic.Core
-            // En una implementación real, necesitarías definir qué propiedades buscar
-            // Por ahora, retornamos la query sin filtros
-            Logger.LogWarning("Búsqueda dinámica no implementada. Retornando query sin filtros.");
-            return query;
+            // This method is not implemented. Dynamic text search across entity properties
+            // requires either System.Linq.Dynamic.Core or explicit property configuration.
+            // Consider using specifications (ISpecification<T>) for type-safe filtering.
+            throw new NotImplementedException(
+                "ApplySearchFilter is not implemented. Use specification-based filtering with ISpecification<T> instead. " +
+                "For dynamic search requirements, consider implementing a custom search strategy specific to your entity.");
         }
         #endregion
 

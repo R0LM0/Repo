@@ -12,9 +12,8 @@ namespace Repo.Repository.Base
     /// <summary>
     /// Repository interface for entity operations.
     /// 
-    /// IMPORTANT: Transaction Management Consolidation
-    /// - Transaction methods (BeginTransaction, CommitTransaction, RollbackTransaction) are OBSOLETE
-    /// - Use UnitOfWork for all transaction orchestration instead
+    /// Transaction Management:
+    /// - Use IUnitOfWork for all transaction orchestration
     /// - Repositories obtained via IUnitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
     /// </summary>
     public interface IRepo<T> where T : class
@@ -98,55 +97,5 @@ namespace Repo.Repository.Base
         Task<T?> GetByIdWithCacheAsync(long id, TimeSpan? cacheExpiration = null, CancellationToken cancellationToken = default);
         Task<IEnumerable<T>> GetAllWithCacheAsync(TimeSpan? cacheExpiration = null, CancellationToken cancellationToken = default);
         Task InvalidateCacheAsync(string pattern = "*", CancellationToken cancellationToken = default);
-
-        #region DEPRECATED - Transaction Management
-        /// <summary>
-        /// OBSOLETE: Use UnitOfWork.BeginTransactionAsync() instead.
-        /// Repositories should not manage their own transactions.
-        /// This method will be removed in a future version.
-        /// </summary>
-        [Obsolete("Use IUnitOfWork.BeginTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        void BeginTransaction();
-
-        /// <summary>
-        /// OBSOLETE: Use UnitOfWork.BeginTransactionAsync() instead.
-        /// Repositories should not manage their own transactions.
-        /// This method will be removed in a future version.
-        /// </summary>
-        [Obsolete("Use IUnitOfWork.BeginTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        Task BeginTransactionAsync();
-
-        /// <summary>
-        /// OBSOLETE: Use UnitOfWork.CommitTransactionAsync() instead.
-        /// Repositories should not manage their own transactions.
-        /// This method will be removed in a future version.
-        /// </summary>
-        [Obsolete("Use IUnitOfWork.CommitTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        void CommitTransaction();
-
-        /// <summary>
-        /// OBSOLETE: Use UnitOfWork.CommitTransactionAsync() instead.
-        /// Repositories should not manage their own transactions.
-        /// This method will be removed in a future version.
-        /// </summary>
-        [Obsolete("Use IUnitOfWork.CommitTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        Task CommitTransactionAsync();
-
-        /// <summary>
-        /// OBSOLETE: Use UnitOfWork.RollbackTransactionAsync() instead.
-        /// Repositories should not manage their own transactions.
-        /// This method will be removed in a future version.
-        /// </summary>
-        [Obsolete("Use IUnitOfWork.RollbackTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        void RollbackTransaction();
-
-        /// <summary>
-        /// OBSOLETE: Use UnitOfWork.RollbackTransactionAsync() instead.
-        /// Repositories should not manage their own transactions.
-        /// This method will be removed in a future version.
-        /// </summary>
-        [Obsolete("Use IUnitOfWork.RollbackTransactionAsync() instead. Repository-level transaction methods are deprecated.", false)]
-        Task RollbackTransactionAsync();
-        #endregion
     }
 }
