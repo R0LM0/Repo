@@ -20,7 +20,7 @@ namespace Repo.Repository.Base
 {
     public partial class RepoBase<T, TContext>
     {
-        #region NUEVOS MÉTODOS - Bulk Operations
+        #region NEW METHODS - Bulk Operations
         /// <summary>
         /// Adds multiple entities in a single operation.
         /// </summary>
@@ -36,7 +36,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en AddRangeAsync para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in AddRangeAsync for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -56,7 +56,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en UpdateRangeAsync para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in UpdateRangeAsync for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -76,7 +76,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en DeleteRangeAsync para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in DeleteRangeAsync for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -97,7 +97,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en DeleteRangeAsync con predicate para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in DeleteRangeAsync with predicate for {Entity}", typeof(T).Name);
                 throw;
             }
         }

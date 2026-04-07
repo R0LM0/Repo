@@ -22,6 +22,9 @@ namespace Repo.Repository.Base
         /// <summary>
         /// Gets or sets a value indicating whether to log when compiled queries are used.
         /// </summary>
+        /// <remarks>
+        /// Useful for debugging and monitoring compiled query usage in development environments.
+        /// </remarks>
         public bool LogCompiledQueryUsage { get; set; } = false;
     }
 }

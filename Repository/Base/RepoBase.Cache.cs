@@ -23,7 +23,7 @@ namespace Repo.Repository.Base
 {
     public partial class RepoBase<T, TContext>
     {
-        #region NUEVOS MÉTODOS - Caché
+        #region NEW METHODS - Cache
         /// <summary>
         /// Gets an entity by integer ID with caching support.
         /// If cache service is not configured, falls back to GetById.

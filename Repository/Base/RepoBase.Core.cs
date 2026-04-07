@@ -27,7 +27,7 @@ namespace Repo.Repository.Base
 {
     public partial class RepoBase<T, TContext>
     {
-        #region Métodos Sincrónicos
+        #region Synchronous Methods
         /// <summary>
         /// Finds an entity by its integer ID.
         /// </summary>
@@ -38,7 +38,7 @@ namespace Repo.Repository.Base
         {
             var entity = Table.Find(id);
             if (entity == null)
-                throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
+                throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
             return entity;
         }
 
@@ -55,7 +55,7 @@ namespace Repo.Repository.Base
                 throw new ArgumentNullException(nameof(id));
             var entity = Table.Find((int)id.Value);
             if (entity == null)
-                throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
+                throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
             return entity;
         }
 
@@ -125,13 +125,13 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en Save");
+                Logger.LogError(ex, "Error in Save");
                 throw;
             }
         }
         #endregion
 
-        #region Métodos Asíncronos - Core CRUD
+        #region Async Methods - Core CRUD
         /// <summary>
         /// Asynchronously saves all changes made in the context to the database.
         /// </summary>
@@ -145,7 +145,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en SaveAsync");
+                Logger.LogError(ex, "Error in SaveAsync");
                 throw;
             }
         }
@@ -165,7 +165,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en GetAllAsync para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in GetAllAsync for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -186,7 +186,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en GetAllAsync(int i) para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in GetAllAsync(int i) for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -204,12 +204,12 @@ namespace Repo.Repository.Base
             {
                 var entity = await Table.FindAsync(new object[] { id }, cancellationToken);
                 if (entity == null)
-                    throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
+                    throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
                 return entity;
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en GetById para {Entity} id: {Id}", typeof(T).Name, id);
+                Logger.LogError(ex, "Error in GetById for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
         }
@@ -227,12 +227,12 @@ namespace Repo.Repository.Base
             {
                 var entity = await Table.FindAsync(new object[] { (int)id }, cancellationToken);
                 if (entity == null)
-                    throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
+                    throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
                 return entity;
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en GetById para {Entity} id: {Id}", typeof(T).Name, id);
+                Logger.LogError(ex, "Error in GetById for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
         }
@@ -253,7 +253,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en Insert para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in Insert for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -274,7 +274,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en UpdateAsync para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in UpdateAsync for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -291,13 +291,13 @@ namespace Repo.Repository.Base
             {
                 var entity = await GetById(id, cancellationToken);
                 if (entity == null)
-                    throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
+                    throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
                 Table.Remove(entity);
                 await Db.SaveChangesAsync(cancellationToken);
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en DeleteAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                Logger.LogError(ex, "Error in DeleteAsync for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
         }
@@ -314,13 +314,13 @@ namespace Repo.Repository.Base
             {
                 var entity = await GetById(id, cancellationToken);
                 if (entity == null)
-                    throw new EntityNotFoundException($"Entidad {typeof(T).Name} no encontrada.");
+                    throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
                 Table.Remove(entity);
                 await Db.SaveChangesAsync(cancellationToken);
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en DeleteAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                Logger.LogError(ex, "Error in DeleteAsync for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
         }

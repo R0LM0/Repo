@@ -36,8 +36,8 @@ namespace Repo.Repository.Base
     {
         protected readonly TContext Db;
         protected readonly DbSet<T> Table;
-        protected readonly ILogger Logger;  // Campo para el logging
-        protected readonly ICacheService? CacheService; // Campo para el caché
+        protected readonly ILogger Logger;  // Field for logging
+        protected readonly ICacheService? CacheService; // Field for caching
         private bool _disposed = false;
 
         public RepoBase(TContext context, ILogger logger, ICacheService? cacheService = null)

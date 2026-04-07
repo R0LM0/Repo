@@ -29,7 +29,7 @@ namespace Repo.Repository.Base
 {
     public partial class RepoBase<T, TContext>
     {
-        #region NUEVOS MÉTODOS - Stored Procedures y Funciones
+        #region NEW METHODS - Stored Procedures and Functions
         /// <summary>
         /// Validates that a stored procedure or function name is allowed by the whitelist.
         /// If no whitelist is configured, validation passes for backward compatibility.
@@ -63,7 +63,7 @@ namespace Repo.Repository.Base
         public async Task<IEnumerable<TResult>> ExecuteStoredProcedureAsync<TResult>(string storedProcedure, CancellationToken cancellationToken = default, params object[] parameters) where TResult : class
         {
             if (string.IsNullOrWhiteSpace(storedProcedure))
-                throw new ArgumentException("El nombre del procedimiento almacenado no puede estar vacío.", nameof(storedProcedure));
+                throw new ArgumentException("Stored procedure name cannot be empty.", nameof(storedProcedure));
 
             // Validate against whitelist
             ValidateStoredProcedureName(storedProcedure);
@@ -74,7 +74,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error al ejecutar el procedimiento almacenado {Procedure} para {Entity}", storedProcedure, typeof(T).Name);
+                Logger.LogError(ex, "Error executing stored procedure {Procedure} for {Entity}", storedProcedure, typeof(T).Name);
                 throw;
             }
         }
@@ -90,21 +90,21 @@ namespace Repo.Repository.Base
         public async Task<int> ExecuteStoredProcedureNonQueryAsync(string storedProcedure, CancellationToken cancellationToken = default, params object[] parameters)
         {
             if (string.IsNullOrWhiteSpace(storedProcedure))
-                throw new ArgumentException("El nombre del procedimiento almacenado no puede estar vacío.", nameof(storedProcedure));
+                throw new ArgumentException("Stored procedure name cannot be empty.", nameof(storedProcedure));
 
             // Validate against whitelist
             ValidateStoredProcedureName(storedProcedure);
 
             try
             {
-                // Si el stored procedure incluye la palabra EXEC o @, trátalo como SQL directo
+                // If the stored procedure includes the word EXEC or @, treat it as direct SQL
                 if (storedProcedure.Contains("EXEC") || storedProcedure.Contains("@"))
                 {
                     return await Db.Database.ExecuteSqlRawAsync(storedProcedure, parameters, cancellationToken);
                 }
                 else
                 {
-                    // Si es solo el nombre del SP, construye la llamada
+                    // If it's just the SP name, build the call
                     var paramPlaceholders = string.Join(", ", parameters.OfType<SqlParameter>().Select(p => p.ParameterName));
                     var fullCommand = $"EXEC {storedProcedure} {paramPlaceholders}";
                     return await Db.Database.ExecuteSqlRawAsync(fullCommand, parameters, cancellationToken);
@@ -112,7 +112,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error al ejecutar el procedimiento almacenado (non query) {Procedure} para {Entity}", storedProcedure, typeof(T).Name);
+                Logger.LogError(ex, "Error executing stored procedure (non query) {Procedure} for {Entity}", storedProcedure, typeof(T).Name);
                 throw;
             }
         }
@@ -128,7 +128,7 @@ namespace Repo.Repository.Base
         public async Task<TResult> ExecuteScalarFunctionAsync<TResult>(string functionName, params object[] parameters)
         {
             if (string.IsNullOrWhiteSpace(functionName))
-                throw new ArgumentException("El nombre de la función no puede estar vacío.", nameof(functionName));
+                throw new ArgumentException("Function name cannot be empty.", nameof(functionName));
 
             // Validate against whitelist
             ValidateStoredProcedureName(functionName);
@@ -143,7 +143,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error al ejecutar la función escalar {Function} para {Entity}", functionName, typeof(T).Name);
+                Logger.LogError(ex, "Error executing scalar function {Function} for {Entity}", functionName, typeof(T).Name);
                 throw;
             }
         }
@@ -159,7 +159,7 @@ namespace Repo.Repository.Base
         public async Task<IEnumerable<TResult>> ExecuteTableValuedFunctionAsync<TResult>(string functionName, params object[] parameters) where TResult : class
         {
             if (string.IsNullOrWhiteSpace(functionName))
-                throw new ArgumentException("El nombre de la función no puede estar vacío.", nameof(functionName));
+                throw new ArgumentException("Function name cannot be empty.", nameof(functionName));
 
             // Validate against whitelist
             ValidateStoredProcedureName(functionName);
@@ -173,7 +173,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error al ejecutar la función con valores de tabla {Function} para {Entity}", functionName, typeof(T).Name);
+                Logger.LogError(ex, "Error executing table-valued function {Function} for {Entity}", functionName, typeof(T).Name);
                 throw;
             }
         }

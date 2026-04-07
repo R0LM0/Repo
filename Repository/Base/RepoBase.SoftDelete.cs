@@ -23,7 +23,7 @@ namespace Repo.Repository.Base
 {
     public partial class RepoBase<T, TContext>
     {
-        #region NUEVOS MÉTODOS - Soft Delete
+        #region NEW METHODS - Soft Delete
         /// <summary>
         /// Soft deletes an entity by its integer ID.
         /// If entity doesn't implement ISoftDelete, performs hard delete.
@@ -41,7 +41,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en SoftDeleteAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                Logger.LogError(ex, "Error in SoftDeleteAsync for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
         }
@@ -63,7 +63,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en SoftDeleteAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                Logger.LogError(ex, "Error in SoftDeleteAsync for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
         }
@@ -91,14 +91,14 @@ namespace Repo.Repository.Base
                 }
                 else
                 {
-                    // Si no implementa ISoftDelete, hacer eliminación física
+                    // If it doesn't implement ISoftDelete, do physical deletion
                     Table.Remove(entity);
                     return await Db.SaveChangesAsync(cancellationToken);
                 }
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en SoftDeleteAsync para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in SoftDeleteAsync for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -113,7 +113,7 @@ namespace Repo.Repository.Base
         {
             try
             {
-                // Para entidades que implementan ISoftDelete, incluir las eliminadas
+                // For entities that implement ISoftDelete, include the deleted ones
                 if (typeof(ISoftDelete).IsAssignableFrom(typeof(T)))
                 {
                     return await Table.ToListAsync(cancellationToken);
@@ -125,7 +125,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en GetAllIncludingDeletedAsync para {Entity}", typeof(T).Name);
+                Logger.LogError(ex, "Error in GetAllIncludingDeletedAsync for {Entity}", typeof(T).Name);
                 throw;
             }
         }
@@ -154,7 +154,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en RestoreAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                Logger.LogError(ex, "Error in RestoreAsync for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
         }
@@ -183,7 +183,7 @@ namespace Repo.Repository.Base
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Error en RestoreAsync para {Entity} id: {Id}", typeof(T).Name, id);
+                Logger.LogError(ex, "Error in RestoreAsync for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
         }
