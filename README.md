@@ -1,438 +1,302 @@
-# 🚀 Librería de Repositorio Avanzada para .NET 9
+# AdvancedRepository.NET
 
-Una librería completa y optimizada para el patrón Repository con funcionalidades avanzadas para .NET 9.
+A production-grade repository pattern library for .NET 8 and .NET 9 with high-performance operations, caching, specifications, and optional compile-time mapping.
 
-## ✨ Características Principales
+## Supported Target Frameworks
 
-### 🔧 **Funcionalidades Básicas**
+- **.NET 8.0** (LTS) — Full feature support with EF Core 8.0.12
+- **.NET 9.0** — Full feature support with EF Core 9.0.2
 
-- ✅ Operaciones CRUD completas (Create, Read, Update, Delete)
-- ✅ Soporte para operaciones síncronas y asíncronas
-- ✅ Transacciones de base de datos
-- ✅ Logging integrado
-- ✅ Procedimientos almacenados
+## What's New / Current Capabilities
 
-### 🚀 **Funcionalidades Avanzadas**
+### Recently Hardened (Production-Ready)
 
-- 📄 **Paginación y Filtrado**: Paginación automática con filtros dinámicos
-- 🔍 **Especificaciones (Specification Pattern)**: Filtros reutilizables y composables
-- 💾 **Caché con Redis**: Caché distribuido para mejorar el rendimiento
-- ✅ **Validación con FluentValidation**: Validación robusta de entidades
-- 🔄 **AutoMapper**: Mapeo automático entre entidades y DTOs
-- 🗑️ **Soft Delete**: Eliminación lógica con capacidad de restauración
-- 📦 **Bulk Operations**: Operaciones masivas para mejor rendimiento
-- 🏗️ **Unit of Work**: Gestión de transacciones y contexto
-- 🔍 **Búsqueda Avanzada**: Filtros dinámicos y búsqueda por texto
+- **Real Multi-Targeting** — Native support for both .NET 8.0 LTS and .NET 9.0 with framework-aligned dependencies
+- **Consistent Tracking Behavior** — Unified `asNoTracking` behavior across specifications and pagination queries
+- **Comprehensive Test Coverage** — Soft delete, cache integration, high-performance paths, and tracking scenarios fully tested
+- **Clean Transaction APIs** — Obsolete repository-level transaction methods removed; clearer unsupported search behavior
+- **Optional Mapperly Integration** — Compile-time mapping support via separate integration package (`Repo.Integrations.Mapperly`)
 
-## 📦 Instalación
+## Architecture Overview
+
+```
+Core Package (AdvancedRepository.NET8)
+├── Repository.Base
+│   ├── IRepo<T> — Full CRUD, soft delete, cache, specifications, bulk ops
+│   ├── IHighPerformanceRepo<T> — Optimized bulk/streaming for high-throughput
+│   └── UnitOfWork — Transaction orchestration
+├── Repository.Specifications — Reusable query specifications
+├── Repository.Services — Redis cache, FluentValidation
+└── Repository.Models — PagedResult, performance metrics
+
+Optional Integration
+└── Repo.Integrations.Mapperly — Compile-time DTO mapping (Riok.Mapperly 4.1.0)
+```
+
+> **Note:** AutoMapper is no longer part of the core. Use the optional Mapperly integration for compile-time mapping, or bring your own mapper.
+
+## Installation
+
+### Core Package
 
 ```bash
-dotnet add package Microsoft.EntityFrameworkCore
-dotnet add package Microsoft.EntityFrameworkCore.SqlServer
-dotnet add package Microsoft.Extensions.Logging.Abstractions
-dotnet add package Microsoft.Extensions.Caching.StackExchangeRedis
-dotnet add package AutoMapper
-dotnet add package FluentValidation
+dotnet add package AdvancedRepository.NET8
 ```
 
-## 🏗️ Estructura del Proyecto
+### Optional: Mapperly Integration
 
-```
-Repository/
-├── Base/
-│   ├── IRepo.cs                    # Interfaz principal del repositorio
-│   ├── RepoBase.cs                 # Implementación base
-│   └── RepoBaseEnhanced.cs         # Versión mejorada con funcionalidades avanzadas
-├── Models/
-│   └── PagedResult.cs              # Modelos para paginación
-├── Specifications/
-│   ├── ISpecification.cs           # Interfaz para especificaciones
-│   ├── BaseSpecification.cs        # Clase base para especificaciones
-│   ├── SpecificationEvaluator.cs   # Evaluador de especificaciones
-│   └── Examples/
-│       └── UserSpecifications.cs   # Ejemplos de especificaciones
-├── Interfaces/
-│   ├── IAuditableEntity.cs         # Interfaz para entidades auditables
-│   └── ICacheService.cs            # Interfaz para servicio de caché
-├── Services/
-│   ├── RedisCacheService.cs        # Implementación de caché con Redis
-│   ├── ValidationService.cs        # Servicio de validación
-│   └── MappingService.cs           # Servicio de mapeo
-└── UnitOfWork/
-    ├── IUnitOfWork.cs              # Interfaz Unit of Work
-    └── UnitOfWork.cs               # Implementación Unit of Work
+```bash
+dotnet add package AdvancedRepository.Integrations.Mapperly
 ```
 
-## 🚀 Uso Básico
+## Quick Start
 
-### 1. Configuración Básica
+### 1. Configure Services
 
 ```csharp
-// En Program.cs o Startup.cs
-services.AddDbContext<YourDbContext>();
-services.AddScoped(typeof(IRepo<>), typeof(RepoBase<,>));
-services.AddScoped<IUnitOfWork, UnitOfWork<YourDbContext>>();
-```
-
-### 2. Uso del Repositorio
-
-```csharp
-public class UserService
-{
-    private readonly IRepo<User> _userRepo;
-
-    public UserService(IRepo<User> userRepo)
-    {
-        _userRepo = userRepo;
-    }
-
-    public async Task<User> CreateUserAsync(User user)
-    {
-        return await _userRepo.Insert(user);
-    }
-
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
-    {
-        return await _userRepo.GetAllAsync();
-    }
-
-    public async Task<User> GetUserByIdAsync(int id)
-    {
-        return await _userRepo.GetById(id);
-    }
-}
-```
-
-## 🔍 Paginación y Filtrado
-
-```csharp
-// Crear request de paginación
-var request = new PagedRequest
-{
-    PageNumber = 1,
-    PageSize = 10,
-    SortBy = "Name",
-    IsAscending = true,
-    SearchTerm = "john",
-    Filters = new Dictionary<string, object>
-    {
-        { "IsActive", true },
-        { "Role", "Admin" }
-    }
-};
-
-// Obtener resultados paginados
-var result = await _userRepo.GetPagedAsync(request);
-
-Console.WriteLine($"Total: {result.TotalCount}");
-Console.WriteLine($"Página {result.PageNumber} de {result.TotalPages}");
-foreach (var user in result.Items)
-{
-    Console.WriteLine(user.Name);
-}
-```
-
-## 🎯 Especificaciones (Specification Pattern)
-
-```csharp
-// Crear especificación
-public class ActiveUsersSpecification : BaseSpecification<User>
-{
-    public ActiveUsersSpecification()
-    {
-        AddCriteria(user => user.IsActive);
-        AddInclude(user => user.Profile);
-        AddOrderBy(user => user.CreatedAt);
-    }
-}
-
-// Usar especificación
-var spec = new ActiveUsersSpecification();
-var activeUsers = await _userRepo.GetAllBySpecAsync(spec);
-
-// Especificación con paginación
-var pagedSpec = new UsersWithPaginationSpecification(1, 10, "Name", true);
-var pagedUsers = await _userRepo.GetPagedBySpecAsync(pagedSpec, request);
-```
-
-## 💾 Caché con Redis
-
-```csharp
-// Configurar Redis
-services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = "localhost:6379";
-});
-services.AddScoped<ICacheService, RedisCacheService>();
-
-// Usar caché
-var user = await _userRepo.GetByIdWithCacheAsync(1, TimeSpan.FromMinutes(30));
-var allUsers = await _userRepo.GetAllWithCacheAsync(TimeSpan.FromHours(1));
-
-// Invalidar caché
-await _userRepo.InvalidateCacheAsync("*");
-```
-
-## ✅ Validación con FluentValidation
-
-```csharp
-// Crear validador
-public class UserValidator : AbstractValidator<User>
-{
-    public UserValidator()
-    {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
-        RuleFor(x => x.Age).InclusiveBetween(18, 100);
-    }
-}
-
-// Usar validación
-var validator = new UserValidator();
-var validationService = new ValidationService(logger);
-
-var isValid = await validationService.IsValidAsync(user, validator);
-if (!isValid)
-{
-    var result = await validationService.ValidateAsync(user, validator);
-    // Manejar errores de validación
-}
-```
-
-## 🔄 AutoMapper
-
-```csharp
-// Configurar AutoMapper
-var config = new MapperConfiguration(cfg =>
-{
-    cfg.CreateMap<User, UserDto>();
-    cfg.CreateMap<UserDto, User>();
-});
-
-var mapper = config.CreateMapper();
-var mappingService = new MappingService(mapper, logger);
-
-// Usar mapeo
-var userDto = mappingService.Map<User, UserDto>(user);
-var usersDto = mappingService.MapCollection<User, UserDto>(users);
-```
-
-## 🗑️ Soft Delete
-
-```csharp
-// Implementar ISoftDelete en tu entidad
-public class User : ISoftDelete
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public bool IsDeleted { get; set; }
-    public DateTime? DeletedAt { get; set; }
-    public string? DeletedBy { get; set; }
-}
-
-// Usar soft delete
-await _userRepo.SoftDeleteAsync(1, "admin");
-await _userRepo.RestoreAsync(1);
-
-// Obtener incluyendo eliminados
-var allUsers = await _userRepo.GetAllIncludingDeletedAsync();
-```
-
-## 📦 Bulk Operations
-
-```csharp
-// Operaciones masivas
-var users = new List<User> { /* ... */ };
-
-// Agregar múltiples usuarios
-await _userRepo.AddRangeAsync(users);
-
-// Actualizar múltiples usuarios
-await _userRepo.UpdateRangeAsync(users);
-
-// Eliminar múltiples usuarios
-await _userRepo.DeleteRangeAsync(users);
-
-// Eliminar por condición
-await _userRepo.DeleteRangeAsync(user => user.IsActive == false);
-```
-
-## 🏗️ Unit of Work
-
-```csharp
-public class UserService
-{
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UserService(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task CreateUserWithProfileAsync(User user, UserProfile profile)
-    {
-        try
-        {
-            await _unitOfWork.BeginTransactionAsync();
-
-            var userRepo = _unitOfWork.Repository<User>();
-            var profileRepo = _unitOfWork.Repository<UserProfile>();
-
-            await userRepo.Insert(user);
-            await profileRepo.Insert(profile);
-
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitTransactionAsync();
-        }
-        catch
-        {
-            await _unitOfWork.RollbackTransactionAsync();
-            throw;
-        }
-    }
-}
-```
-
-## 🔍 Búsqueda Avanzada
-
-```csharp
-// Búsqueda con filtros
-var users = await _userRepo.FindAsync(user => user.IsActive && user.Age > 18);
-
-// Búsqueda con includes
-var usersWithProfile = await _userRepo.FindAsync(
-    user => user.IsActive,
-    user => user.Profile,
-    user => user.Roles
-);
-
-// Verificar existencia
-var exists = await _userRepo.AnyAsync(user => user.Email == "test@example.com");
-
-// Contar registros
-var count = await _userRepo.CountAsync(user => user.IsActive);
-```
-
-## 🚀 Configuración Avanzada
-
-### Configuración Completa en Program.cs
-
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-// Entity Framework
+// Program.cs
 builder.Services.AddDbContext<YourDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Redis Cache
+// Core repository
+builder.Services.AddScoped(typeof(IRepo<>), typeof(RepoBase<,>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork<YourDbContext>>();
+
+// Optional: Cache
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
-
-// AutoMapper
-builder.Services.AddAutoMapper(typeof(Program));
-
-// Repositorios y servicios
-builder.Services.AddScoped(typeof(IRepo<>), typeof(RepoBase<,>));
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork<YourDbContext>>();
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
-builder.Services.AddScoped<ValidationService>();
-builder.Services.AddScoped<MappingService>();
 
-// Logging
-builder.Services.AddLogging();
+// Optional: Mapperly mappers (stateless, thread-safe)
+builder.Services.AddSingleton<UserMapper>();
+builder.Services.AddSingleton<ProductMapper>();
 ```
 
-## 📊 Rendimiento y Optimización
-
-### 1. **Caché Inteligente**
-
-- Caché automático para consultas frecuentes
-- Invalidación automática al modificar datos
-- Configuración de TTL personalizable
-
-### 2. **Bulk Operations**
-
-- Operaciones masivas para mejor rendimiento
-- Reducción de llamadas a la base de datos
-- Transacciones optimizadas
-
-### 3. **Especificaciones**
-
-- Filtros reutilizables
-- Composición de criterios
-- Optimización de consultas
-
-### 4. **Paginación Eficiente**
-
-- Paginación a nivel de base de datos
-- Filtros dinámicos
-- Ordenamiento optimizado
-
-## 🔧 Personalización
-
-### Crear Especificaciones Personalizadas
+### 2. Define Your Entity
 
 ```csharp
-public class UsersByDateRangeSpecification : BaseSpecification<User>
+public class User : ISoftDelete
 {
-    public UsersByDateRangeSpecification(DateTime startDate, DateTime endDate)
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
+}
+```
+
+### 3. Create Mapper (Optional)
+
+```csharp
+using Riok.Mapperly.Abstractions;
+
+[Mapper]
+public partial class UserMapper
+{
+    public partial UserDto ToDto(User entity);
+    public partial IEnumerable<UserDto> ToDtoCollection(IEnumerable<User> entities);
+}
+```
+
+### 4. Use in Controller
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
+{
+    private readonly IRepo<User> _userRepo;
+    private readonly UserMapper _mapper;
+
+    public UsersController(IRepo<User> userRepo, UserMapper mapper)
     {
-        AddCriteria(user => user.CreatedAt >= startDate && user.CreatedAt <= endDate);
-        AddOrderByDescending(user => user.CreatedAt);
+        _userRepo = userRepo;
+        _mapper = mapper;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAll(
+        [FromQuery] bool noTracking = false)
+    {
+        var users = await _userRepo.GetAllAsync(noTracking);
+        return Ok(_mapper.ToDtoCollection(users));
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<UserDto>> GetById(int id)
+    {
+        var user = await _userRepo.GetById(id);
+        if (user == null) return NotFound();
+        return Ok(_mapper.ToDto(user));
+    }
+
+    [HttpGet("paged")]
+    public async Task<ActionResult<PagedResult<UserDto>>> GetPaged(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] bool noTracking = true) // Optimized for read-only
+    {
+        var result = await _userRepo.GetPagedAsync(
+            new PagedRequest { PageNumber = page, PageSize = pageSize },
+            noTracking);
+        
+        return Ok(new PagedResult<UserDto>
+        {
+            Data = _mapper.ToDtoCollection(result.Data),
+            TotalCount = result.TotalCount,
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalPages = result.TotalPages,
+            HasNextPage = result.HasNextPage,
+            HasPreviousPage = result.HasPreviousPage
+        });
     }
 }
 ```
 
-### Extender el Repositorio Base
+## Recommended Usage in a New API Project
+
+### Project Structure
+
+```
+MyApi/
+├── MyApi.Core/              # Domain entities, interfaces
+│   ├── Entities/
+│   └── DTOs/
+├── MyApi.Infrastructure/    # DbContext, migrations
+├── MyApi.Application/       # Services, mappers, specifications
+│   ├── Mappers/            # Mapperly mappers
+│   ├── Specifications/     # Query specifications
+│   └── Services/
+└── MyApi.Web/              # Controllers, Program.cs
+    └── Controllers/
+```
+
+### Dependency Injection Setup
 
 ```csharp
-public class UserRepository : RepoBaseEnhanced<User, YourDbContext>
-{
-    public UserRepository(YourDbContext context, ILogger logger, ICacheService cacheService)
-        : base(context, logger, cacheService)
-    {
-    }
+// Program.cs
+var builder = WebApplication.CreateBuilder(args);
 
-    public async Task<IEnumerable<User>> GetUsersByRoleAsync(string role)
+// Database
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+// Repository Core
+builder.Services.AddScoped(typeof(IRepo<>), typeof(RepoBase<,>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork<AppDbContext>>();
+
+// Optional: Distributed Cache
+builder.Services.AddStackExchangeRedisCache(options =>
+    options.Configuration = builder.Configuration.GetConnectionString("Redis"));
+builder.Services.AddScoped<ICacheService, RedisCacheService>();
+
+// Application Services
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Mapperly Mappers (singleton, thread-safe)
+builder.Services.AddSingleton<UserMapper>();
+builder.Services.AddSingleton<ProductMapper>();
+builder.Services.AddSingleton<OrderMapper>();
+
+// API
+builder.Services.AddControllers();
+```
+
+### Specification Pattern Example
+
+```csharp
+// Specifications/ActiveUsersSpecification.cs
+public class ActiveUsersSpecification : BaseSpecification<User>
+{
+    public ActiveUsersSpecification()
     {
-        return await FindAsync(user => user.Role == role);
+        AddCriteria(u => !u.IsDeleted);
+        AddOrderBy(u => u.Name);
+        IsTrackingEnabled = false; // Optimize for reads
     }
+}
+
+// Usage in service
+public async Task<IEnumerable<UserDto>> GetActiveUsersAsync()
+{
+    var spec = new ActiveUsersSpecification();
+    var users = await _userRepo.GetAllBySpecAsync(spec);
+    return _mapper.ToDtoCollection(users);
 }
 ```
 
-## 🧪 Testing
+## Performance Notes
 
-```csharp
-[Test]
-public async Task GetPagedAsync_ShouldReturnPagedResults()
-{
-    // Arrange
-    var request = new PagedRequest { PageNumber = 1, PageSize = 10 };
+| Feature | Best For | Tracking Strategy |
+|---------|----------|-------------------|
+| `GetAllAsync(asNoTracking: true)` | List views, exports | No tracking |
+| `GetPagedAsync(asNoTracking: true)` | Data grids, APIs | No tracking |
+| `GetBySpecAsync(spec)` | Filtered queries | Per-spec via `IsTrackingEnabled` |
+| `FindAsync(predicate, asNoTracking: true)` | Search results | No tracking |
+| `GetById` / `Insert` / `Update` | Entity mutations | Tracking required |
 
-    // Act
-    var result = await _userRepo.GetPagedAsync(request);
+## Breaking Changes from Previous Versions
 
-    // Assert
-    Assert.That(result.Items, Is.Not.Null);
-    Assert.That(result.TotalCount, Is.GreaterThanOrEqualTo(0));
-    Assert.That(result.PageNumber, Is.EqualTo(1));
-}
-```
+### AutoMapper Removed from Core
+- **Before**: `MappingService` and AutoMapper included in core package
+- **After**: Use `Repo.Integrations.Mapperly` for compile-time mapping, or bring your own mapper
+- **Migration**: Replace `MappingService` usage with direct Mapperly mapper injection
 
-## 📝 Licencia
+### Repository Transaction APIs Removed
+- **Before**: `IRepo.BeginTransaction()`, `CommitTransaction()`, `RollbackTransaction()`
+- **After**: Use `IUnitOfWork` for all transaction orchestration
+- **Migration**: Replace repository transaction calls with unit of work pattern
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+### Multi-Target Support
+- **Before**: Single target `net8.0`
+- **After**: Multi-target `net8.0;net9.0`
+- **Migration**: No code changes required; package automatically selects appropriate framework
 
-## 🤝 Contribuciones
+## Key Features
 
-Las contribuciones son bienvenidas. Por favor, abre un issue o un pull request.
+### CRUD Operations
+- Full sync/async CRUD with `Find`, `GetAll`, `Insert`, `Update`, `Delete`
+- Bulk operations: `AddRangeAsync`, `UpdateRangeAsync`, `DeleteRangeAsync`
 
-## 📞 Soporte
+### Soft Delete
+- `ISoftDelete` interface for logical deletion
+- `SoftDeleteAsync`, `RestoreAsync`, `GetAllIncludingDeletedAsync`
 
-Si tienes alguna pregunta o necesitas ayuda, por favor abre un issue en el repositorio.
+### Specifications
+- Reusable query specifications with `BaseSpecification<T>`
+- Composition with criteria, includes, ordering
+- Automatic `AsNoTracking` respect via `IsTrackingEnabled`
+
+### Pagination
+- `PagedResult<T>` with metadata (total count, page info, navigation flags)
+- `GetPagedAsync` with optional `asNoTracking` parameter
+
+### Caching
+- `ICacheService` abstraction (Redis implementation included)
+- `GetByIdWithCacheAsync`, `GetAllWithCacheAsync`, `InvalidateCacheAsync`
+
+### High Performance
+- `IHighPerformanceRepo<T>` for bulk/streaming scenarios
+- `IAsyncEnumerable<T>` support for large datasets
+
+### Unit of Work
+- Transaction orchestration across multiple repositories
+- Consistent `SaveChangesAsync` boundary
+
+## Documentation
+
+- [Mapperly Integration Guide](Integrations/Repo.Integrations.Mapperly/README.md)
+- Architecture decisions and patterns: See `/docs` (coming in #47)
+- End-to-end sample API: See issue #45
+
+## License
+
+MIT — See [LICENSE](LICENSE) for details.
 
 ---
 
-**¡Disfruta usando esta librería de repositorio avanzada! 🚀**
+**Built for production APIs. Optimized for performance. Designed for maintainability.**
