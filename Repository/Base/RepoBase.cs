@@ -381,11 +381,11 @@ namespace Repo.Repository.Base
         #endregion
 
         #region NUEVOS MÉTODOS - Paginación y Filtrado
-        public async Task<PagedResult<T>> GetPagedAsync(PagedRequest request, CancellationToken cancellationToken = default)
+        public async Task<PagedResult<T>> GetPagedAsync(PagedRequest request, bool asNoTracking = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                var query = Table.AsQueryable();
+                var query = asNoTracking ? Table.AsNoTracking() : Table.AsQueryable();
 
                 // Aplica búsqueda si hay SearchTerm
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -420,11 +420,11 @@ namespace Repo.Repository.Base
             }
         }
 
-        public async Task<PagedResult<T>> GetPagedAsync(Expression<Func<T, bool>> filter, PagedRequest request, CancellationToken cancellationToken = default)
+        public async Task<PagedResult<T>> GetPagedAsync(Expression<Func<T, bool>> filter, PagedRequest request, bool asNoTracking = false, CancellationToken cancellationToken = default)
         {
             try
             {
-                var query = Table.Where(filter);
+                var query = asNoTracking ? Table.AsNoTracking().Where(filter) : Table.Where(filter);
 
                 var totalCount = await query.CountAsync(cancellationToken);
                 var items = await query
