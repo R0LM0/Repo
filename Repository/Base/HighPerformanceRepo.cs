@@ -53,7 +53,7 @@ namespace Repo.Repository.Base
                 async entity => await ProcessEntityAsync(entity),
                 executionDataflowBlockOptions);
 
-            // Timer para procesar lotes automáticamente
+            // Timer for automatic batch processing
             _batchTimer = new Timer(ProcessBatchTimer, null, batchTimeoutMs, batchTimeoutMs);
         }
 
@@ -85,7 +85,7 @@ namespace Repo.Repository.Base
 
                     totalInserted += batch.Length;
 
-                    // Limpiar contexto periódicamente
+                    // Clear context periodically
                     if (totalInserted % (batchSize * 10) == 0)
                     {
                         await ClearContextAsync();
@@ -493,7 +493,7 @@ namespace Repo.Repository.Base
             Db.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             Db.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            // Configurar conexión SQL
+            // Configure SQL connection
             var connection = Db.Database.GetDbConnection() as SqlConnection;
             if (connection != null)
             {
@@ -501,9 +501,9 @@ namespace Repo.Repository.Base
 
                 if (enableRetryOnFailure)
                 {
-                    // Aquí podrías implementar una política de reintentos si lo deseas
+                    // You could implement retry policy here
                     // var retryPolicy = SqlServerRetryPolicy.Create();
-                    // Implementar retry policy según necesidades
+                    // Implement retry policy as needed
                 }
             }
         }
@@ -535,8 +535,8 @@ namespace Repo.Repository.Base
 
         public async Task ExecuteDistributedTransactionAsync(params Func<Task>[] operations)
         {
-            // Implementar transacción distribuida si es necesario
-            // Por ahora, ejecutar secuencialmente
+            // Implement distributed transaction if needed
+            // For now, execute sequentially
             foreach (var operation in operations)
             {
                 await operation();

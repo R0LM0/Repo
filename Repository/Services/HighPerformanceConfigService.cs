@@ -7,7 +7,7 @@ using System.Data;
 namespace Repo.Repository.Services
 {
     /// <summary>
-    /// Servicio de configuración para optimizar el rendimiento de la base de datos
+    /// Configuration service for optimizing database performance
     /// </summary>
     public class HighPerformanceConfigService
     {
@@ -21,73 +21,73 @@ namespace Repo.Repository.Services
         }
 
         /// <summary>
-        /// Configura DbContext para alto rendimiento
+        /// Configures DbContext for high performance
         /// </summary>
         public void ConfigureDbContext<TContext>(TContext context) where TContext : DbContext
         {
             try
             {
-                // Configuraciones críticas para alto rendimiento
+                // Critical configurations for high performance
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
                 context.ChangeTracker.AutoDetectChangesEnabled = false;
                 context.ChangeTracker.LazyLoadingEnabled = false;
 
-                // Configurar timeout de comandos
-                context.Database.SetCommandTimeout(300); // 5 minutos
+                // Configure command timeout
+                context.Database.SetCommandTimeout(300); // 5 minutes
 
-                // Configurar conexión SQL para alto rendimiento
+                // Configure SQL connection for high performance
                 var connection = context.Database.GetDbConnection();
                 if (connection.State != ConnectionState.Open)
                 {
                     connection.Open();
                 }
 
-                // Configuraciones específicas para SQL Server
+                // SQL Server specific configurations
                 if (connection is Microsoft.Data.SqlClient.SqlConnection sqlConnection)
                 {
                     ConfigureSqlConnection(sqlConnection);
                 }
 
-                _logger.LogInformation("DbContext configurado para alto rendimiento");
+                _logger.LogInformation("DbContext configured for high performance");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error configurando DbContext para alto rendimiento");
+                _logger.LogError(ex, "Error configuring DbContext for high performance");
                 throw;
             }
         }
 
         /// <summary>
-        /// Configura conexión SQL Server para alto rendimiento
+        /// Configures SQL Server connection for high performance
         /// </summary>
         private void ConfigureSqlConnection(Microsoft.Data.SqlClient.SqlConnection connection)
         {
-            // Configuraciones de conexión para alto rendimiento
+            // Connection configurations for high performance
             var connectionStringBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connection.ConnectionString)
             {
-                // Pool de conexiones optimizado
+                // Optimized connection pool
                 MaxPoolSize = 200,
                 MinPoolSize = 10,
                 Pooling = true,
 
-                // Configuraciones de rendimiento
+                // Performance configurations
                 MultipleActiveResultSets = true,
                 Enlist = false,
                 LoadBalanceTimeout = 30,
 
-                // Configuraciones de red
+                // Network configurations
                 ConnectTimeout = 30,
                 CommandTimeout = 300,
 
-                // Configuraciones de memoria
+                // Memory configurations
                 PacketSize = 8192,
 
-                // Configuraciones de seguridad (ajustar según necesidades)
+                // Security configurations (adjust as needed)
                 IntegratedSecurity = false,
                 PersistSecurityInfo = false
             };
 
-            // Aplicar configuración si es posible
+            // Apply configuration if possible
             if (connection.State == ConnectionState.Open)
             {
                 connection.Close();
@@ -97,7 +97,7 @@ namespace Repo.Repository.Services
         }
 
         /// <summary>
-        /// Obtiene configuración optimizada para bulk operations
+        /// Gets optimized configuration for bulk operations
         /// </summary>
         public BulkOperationConfig GetBulkOperationConfig()
         {
@@ -115,7 +115,7 @@ namespace Repo.Repository.Services
         }
 
         /// <summary>
-        /// Obtiene configuración de concurrencia
+        /// Gets concurrency configuration
         /// </summary>
         public ConcurrencyConfig GetConcurrencyConfig()
         {
@@ -129,7 +129,7 @@ namespace Repo.Repository.Services
         }
 
         /// <summary>
-        /// Obtiene configuración de caché
+        /// Gets cache configuration
         /// </summary>
         public CacheConfig GetCacheConfig()
         {
@@ -143,7 +143,7 @@ namespace Repo.Repository.Services
         }
 
         /// <summary>
-        /// Obtiene configuración de monitoreo
+        /// Gets monitoring configuration
         /// </summary>
         public MonitoringConfig GetMonitoringConfig()
         {
@@ -158,7 +158,7 @@ namespace Repo.Repository.Services
     }
 
     /// <summary>
-    /// Configuración para operaciones bulk
+    /// Configuration for bulk operations
     /// </summary>
     public class BulkOperationConfig
     {
@@ -173,7 +173,7 @@ namespace Repo.Repository.Services
     }
 
     /// <summary>
-    /// Configuración de concurrencia
+    /// Concurrency configuration
     /// </summary>
     public class ConcurrencyConfig
     {
@@ -184,7 +184,7 @@ namespace Repo.Repository.Services
     }
 
     /// <summary>
-    /// Configuración de caché
+    /// Cache configuration
     /// </summary>
     public class CacheConfig
     {
@@ -195,7 +195,7 @@ namespace Repo.Repository.Services
     }
 
     /// <summary>
-    /// Configuración de monitoreo
+    /// Monitoring configuration
     /// </summary>
     public class MonitoringConfig
     {

@@ -10,7 +10,7 @@ namespace Repo.Repository.Services
         private readonly IMemoryCache _cache;
         private readonly ILogger<MemoryCacheService> _logger;
 
-        // registro de todas las keys guardadas
+        // Registry of all stored cache keys
         private readonly ConcurrentDictionary<string, byte> _keys = new();
 
         public MemoryCacheService(IMemoryCache cache, ILogger<MemoryCacheService> logger)
@@ -39,10 +39,10 @@ namespace Repo.Repository.Services
             {
                 var options = new MemoryCacheEntryOptions();
 
-                // expiración absoluta por defecto 1h
+                // Absolute expiration default 1 hour
                 options.SetAbsoluteExpiration(expiration ?? TimeSpan.FromHours(1));
 
-                // cuando se evicte, quitar del registro
+                // When evicted, remove from registry
                 options.RegisterPostEvictionCallback((k, v, reason, state) =>
                 {
                     _keys.TryRemove(k.ToString()!, out _);

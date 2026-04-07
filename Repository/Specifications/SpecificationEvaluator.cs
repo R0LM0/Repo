@@ -25,7 +25,7 @@ namespace Repo.Repository.Specifications
                 query = query.OrderByDescending(spec.OrderByDescending);
             }
 
-            // Aplicar paginación
+            // Apply pagination
             if (spec.IsPagingEnabled)
             {
                 query = query.Skip(spec.Skip).Take(spec.Take);
@@ -35,7 +35,7 @@ namespace Repo.Repository.Specifications
             query = spec.Includes.Aggregate(query, (current, include) => current.Include(include));
             query = spec.IncludeStrings.Aggregate(query, (current, include) => current.Include(include));
 
-            // Aplicar configuración de tracking
+            // Apply tracking configuration
             if (!spec.IsTrackingEnabled)
             {
                 query = query.AsNoTracking();

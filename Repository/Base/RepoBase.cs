@@ -266,7 +266,7 @@ namespace Repo.Repository.Base
 
             try
             {
-                // Si el stored procedure incluye la palabra EXEC o @, trátalo como SQL directo
+                // If stored procedure includes EXEC or @, treat as direct SQL
                 if (storedProcedure.Contains("EXEC") || storedProcedure.Contains("@"))
                 {
                     return await Db.Database.ExecuteSqlRawAsync(storedProcedure, parameters, cancellationToken);
@@ -286,7 +286,7 @@ namespace Repo.Repository.Base
             }
         }
 
-        // NUEVOS MÉTODOS - Funciones de Base de Datos
+        // NEW METHODS - Database Functions
         public async Task<TResult> ExecuteScalarFunctionAsync<TResult>(string functionName, params object[] parameters)
         {
             if (string.IsNullOrWhiteSpace(functionName))
@@ -334,13 +334,13 @@ namespace Repo.Repository.Base
             {
                 var query = asNoTracking ? Table.AsNoTracking() : Table.AsQueryable();
 
-                // Aplica búsqueda si hay SearchTerm
+                // Apply search if SearchTerm exists
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
                     query = ApplySearchFilter(query, request.SearchTerm);
                 }
 
-                // Aplica ordenamiento dinámico
+                // Apply dynamic ordering
                 if (!string.IsNullOrEmpty(request.SortBy))
                 {
                     query = query.OrderByDynamic(request.SortBy, request.IsAscending);
@@ -638,7 +638,7 @@ namespace Repo.Repository.Base
                 }
                 else
                 {
-                    // Si no implementa ISoftDelete, hacer eliminación física
+                    // If entity doesn't implement ISoftDelete, perform physical deletion
                     Table.Remove(entity);
                     return await Db.SaveChangesAsync(cancellationToken);
                 }

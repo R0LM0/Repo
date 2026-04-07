@@ -8,41 +8,41 @@ using Repo.Repository.Models;
 namespace Repo.Repository.Base
 {
     /// <summary>
-    /// Interfaz para operaciones de alto rendimiento optimizada para miles de transacciones por segundo
+    /// Interface for high-performance operations optimized for thousands of transactions per second
     /// </summary>
-    /// <typeparam name="T">Tipo de entidad</typeparam>
+    /// <typeparam name="T">Entity type</typeparam>
     public interface IHighPerformanceRepo<T> where T : class
     {
         #region Bulk Operations Optimizadas
         /// <summary>
-        /// Inserta miles de registros de forma optimizada usando bulk operations
+        /// Inserts thousands of records optimized using bulk operations
         /// </summary>
         Task<int> BulkInsertAsync(IEnumerable<T> entities, int batchSize = 1000);
 
         /// <summary>
-        /// Actualiza miles de registros de forma optimizada
+        /// Updates thousands of records optimized
         /// </summary>
         Task<int> BulkUpdateAsync(IEnumerable<T> entities, int batchSize = 1000);
 
         /// <summary>
-        /// Elimina miles de registros de forma optimizada
+        /// Deletes thousands of records optimized
         /// </summary>
         Task<int> BulkDeleteAsync(IEnumerable<T> entities, int batchSize = 1000);
 
         /// <summary>
-        /// Elimina registros por predicado usando bulk operations
+        /// Deletes records by predicate using bulk operations
         /// </summary>
         Task<int> BulkDeleteAsync(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Operación de merge (insert/update) optimizada
+        /// Optimized merge (insert/update) operation
         /// </summary>
         Task<int> BulkMergeAsync(IEnumerable<T> entities, int batchSize = 1000);
         #endregion
 
         #region Batch Processing
         /// <summary>
-        /// Procesa grandes volúmenes de datos en lotes para evitar problemas de memoria
+        /// Processes large data volumes in batches to avoid memory issues
         /// </summary>
         Task ProcessBatchAsync<TResult>(
             Expression<Func<T, bool>> filter,
@@ -51,7 +51,7 @@ namespace Repo.Repository.Base
             int maxConcurrency = 4);
 
         /// <summary>
-        /// Procesa datos en paralelo con control de concurrencia
+        /// Processes data in parallel with concurrency control
         /// </summary>
         Task ProcessParallelAsync<TResult>(
             IEnumerable<T> data,
@@ -61,55 +61,55 @@ namespace Repo.Repository.Base
 
         #region Streaming Operations
         /// <summary>
-        /// Obtiene datos en streaming para evitar cargar todo en memoria
+        /// Gets data in streaming to avoid loading everything in memory
         /// </summary>
         IAsyncEnumerable<T> StreamAsync(Expression<Func<T, bool>>? filter = null, int bufferSize = 1000);
 
         /// <summary>
-        /// Obtiene datos paginados optimizados para grandes volúmenes
+        /// Gets optimized paginated data for large volumes
         /// </summary>
         Task<PagedResult<T>> GetPagedOptimizedAsync(PagedRequest request, Expression<Func<T, bool>>? filter = null);
         #endregion
 
         #region Performance Monitoring
         /// <summary>
-        /// Ejecuta operación con métricas de rendimiento
+        /// Executes operation with performance metrics
         /// </summary>
         Task<PerformanceMetrics> ExecuteWithMetricsAsync(Func<Task> operation);
 
         /// <summary>
-        /// Ejecuta operación con métricas de rendimiento y retorna resultado
+        /// Executes operation with performance metrics and returns result
         /// </summary>
         Task<(TResult Result, PerformanceMetrics Metrics)> ExecuteWithMetricsAsync<TResult>(Func<Task<TResult>> operation);
         #endregion
 
         #region Connection Management
         /// <summary>
-        /// Configura el contexto para operaciones de alto rendimiento
+        /// Configures context for high-performance operations
         /// </summary>
         void ConfigureForHighPerformance(int commandTimeout = 300, bool enableRetryOnFailure = true);
 
         /// <summary>
-        /// Limpia el contexto para liberar memoria
+        /// Clears context to free memory
         /// </summary>
         Task ClearContextAsync();
         #endregion
 
         #region Transaction Management
         /// <summary>
-        /// Ejecuta operación en transacción optimizada para grandes volúmenes
+        /// Executes operation in optimized transaction for large volumes
         /// </summary>
         Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> operation, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
 
         /// <summary>
-        /// Ejecuta múltiples operaciones en transacción distribuida
+        /// Executes multiple operations in distributed transaction
         /// </summary>
         Task ExecuteDistributedTransactionAsync(params Func<Task>[] operations);
         #endregion
     }
 
     /// <summary>
-    /// Métricas de rendimiento para monitoreo
+    /// Performance metrics for monitoring
     /// </summary>
     public class PerformanceMetrics
     {

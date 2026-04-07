@@ -64,8 +64,8 @@ namespace Repo.Repository.Services
 
         public async Task RemoveByPatternAsync(string pattern)
         {
-            // Nota: Redis no soporta nativamente patrones de eliminación
-            // Esta implementación requeriría una implementación más compleja
+            // Note: Redis doesn't natively support pattern-based deletion
+            // This implementation would require a more complex approach
             _logger.LogWarning("RemoveByPatternAsync not fully implemented for Redis");
             await Task.CompletedTask;
         }

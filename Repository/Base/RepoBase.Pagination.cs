@@ -36,13 +36,13 @@ namespace Repo.Repository.Base
             {
                 var query = asNoTracking ? Table.AsNoTracking() : Table.AsQueryable();
 
-                // Aplica búsqueda si hay SearchTerm
+                // Apply search if SearchTerm exists
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
                     query = ApplySearchFilter(query, request.SearchTerm);
                 }
 
-                // Aplica ordenamiento dinámico
+                // Apply dynamic ordering
                 if (!string.IsNullOrEmpty(request.SortBy))
                 {
                     query = query.OrderByDynamic(request.SortBy, request.IsAscending);

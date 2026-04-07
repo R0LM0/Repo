@@ -6,12 +6,12 @@ using Repo.Repository.Interfaces;
 namespace Repo.Repository.Services
 {
     /// <summary>
-    /// Servicio de configuración de caché que permite elegir entre Redis y MemoryCache
+    /// Cache configuration service that allows choosing between Redis and MemoryCache
     /// </summary>
     public static class CacheConfigurationService
     {
         /// <summary>
-        /// Configura el servicio de caché según la disponibilidad de Redis
+        /// Configures the cache service based on Redis availability
         /// </summary>
         public static IServiceCollection AddCacheService(this IServiceCollection services, IConfiguration configuration)
         {
@@ -30,13 +30,13 @@ namespace Repo.Repository.Services
 
                     services.AddScoped<ICacheService, RedisCacheService>();
 
-                    // Log para indicar que se está usando Redis
+                    // Log to indicate Redis is being used
                     var logger = services.BuildServiceProvider().GetService<ILogger<RedisCacheService>>();
                     logger?.LogInformation("Configurando Redis como servicio de caché");
                 }
                 catch (Exception ex)
                 {
-                    // Si Redis falla, usar MemoryCache como fallback
+                    // If Redis fails, use MemoryCache as fallback
                     services.AddMemoryCache();
                     services.AddScoped<ICacheService, MemoryCacheService>();
 
@@ -46,7 +46,7 @@ namespace Repo.Repository.Services
             }
             else
             {
-                // Si no hay configuración de Redis, usar MemoryCache
+                // If no Redis configuration, use MemoryCache
                 services.AddMemoryCache();
                 services.AddScoped<ICacheService, MemoryCacheService>();
             }
@@ -55,7 +55,7 @@ namespace Repo.Repository.Services
         }
 
         /// <summary>
-        /// Configura el servicio de caché forzando el uso de MemoryCache
+        /// Configures the cache service forcing the use of MemoryCache
         /// </summary>
         public static IServiceCollection AddMemoryCacheService(this IServiceCollection services)
         {
@@ -65,7 +65,7 @@ namespace Repo.Repository.Services
         }
 
         /// <summary>
-        /// Configura el servicio de caché forzando el uso de Redis
+        /// Configures the cache service forcing the use of Redis
         /// </summary>
         public static IServiceCollection AddRedisCacheService(this IServiceCollection services, string connectionString)
         {
