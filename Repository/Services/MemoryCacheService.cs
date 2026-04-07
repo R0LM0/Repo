@@ -11,7 +11,7 @@ namespace Repo.Repository.Services
         private readonly ILogger<MemoryCacheService> _logger;
 
         // registro de todas las keys guardadas
-        private static readonly ConcurrentDictionary<string, byte> _keys = new();
+        private readonly ConcurrentDictionary<string, byte> _keys = new();
 
         public MemoryCacheService(IMemoryCache cache, ILogger<MemoryCacheService> logger)
         {
