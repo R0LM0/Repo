@@ -35,6 +35,12 @@ namespace Repo.Repository.Specifications
             query = spec.Includes.Aggregate(query, (current, include) => current.Include(include));
             query = spec.IncludeStrings.Aggregate(query, (current, include) => current.Include(include));
 
+            // Aplicar configuración de tracking
+            if (!spec.IsTrackingEnabled)
+            {
+                query = query.AsNoTracking();
+            }
+
             return query;
         }
     }

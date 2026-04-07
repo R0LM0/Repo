@@ -63,8 +63,8 @@ namespace Repo.Repository.Base
         Task<IEnumerable<TResult>> ExecuteTableValuedFunctionAsync<TResult>(string functionName, params object[] parameters) where TResult : class;
 
         // NUEVOS MÉTODOS - Paginación y Filtrado
-        Task<PagedResult<T>> GetPagedAsync(PagedRequest request, CancellationToken cancellationToken = default);
-        Task<PagedResult<T>> GetPagedAsync(Expression<Func<T, bool>> filter, PagedRequest request, CancellationToken cancellationToken = default);
+        Task<PagedResult<T>> GetPagedAsync(PagedRequest request, bool asNoTracking = false, CancellationToken cancellationToken = default);
+        Task<PagedResult<T>> GetPagedAsync(Expression<Func<T, bool>> filter, PagedRequest request, bool asNoTracking = false, CancellationToken cancellationToken = default);
 
         // NUEVOS MÉTODOS - Especificaciones
         Task<T?> GetBySpecAsync(ISpecification<T> spec, CancellationToken cancellationToken = default);
