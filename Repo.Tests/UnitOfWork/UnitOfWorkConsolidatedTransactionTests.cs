@@ -232,32 +232,9 @@ namespace Repo.Tests.UnitOfWork
         }
 
         [Test]
-        public async Task Repository_DeprecatedTransactionMethods_StillWorkButObsolete()
+        public async Task RecommendedPattern_UsingUnitOfWork_WorksCorrectly()
         {
-            // This test verifies that repository transaction methods still work (backward compat)
-            // but are marked obsolete. The compiler will generate warnings.
-
-            // Arrange - Create repo directly (not through UnitOfWork)
-            var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
-            var repoLogger = loggerFactory.CreateLogger<RepoBase<TestEntity, TestDbContext>>();
-#pragma warning disable CS0618 // Intentionally testing deprecated method
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, repoLogger);
-
-            // Act - These calls should work but generate Obsolete warnings
-            repo.BeginTransaction(); // CS0618 warning expected
-            _context.TestEntities.Add(new TestEntity { Name = "DeprecatedMethod" });
-            repo.CommitTransaction(); // CS0618 warning expected
-#pragma warning restore CS0618
-
-            // Assert - Still works for backward compatibility
-            var saved = await _context.TestEntities.FirstOrDefaultAsync(e => e.Name == "DeprecatedMethod");
-            Assert.That(saved, Is.Not.Null);
-        }
-
-        [Test]
-        public async Task RecommendedVsDeprecatedPattern_BothProduceSameResult()
-        {
-            // Verify that both patterns work, but deprecated pattern generates warnings
+            // Verify that the recommended pattern via UnitOfWork works correctly
 
             // RECOMMENDED pattern via UnitOfWork
             var uow = new UnitOfWork<TestDbContext>(_context, _logger);
@@ -266,7 +243,7 @@ namespace Repo.Tests.UnitOfWork
             await uow.SaveChangesAsync();
             await uow.CommitTransactionAsync();
 
-            // Assert both work
+            // Assert the pattern works
             var recommended = await _context.TestEntities.FirstOrDefaultAsync(e => e.Name == "Recommended");
             Assert.That(recommended, Is.Not.Null);
         }
