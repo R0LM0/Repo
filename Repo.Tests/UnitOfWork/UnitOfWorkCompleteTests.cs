@@ -231,7 +231,7 @@ namespace Repo.Tests.UnitOfWork
         }
 
         [Test]
-        public void ExecuteSqlRawAsync_TrustedSql_DoesNotThrowSecurityException()
+        public async Task ExecuteSqlRawAsync_TrustedSql_DoesNotThrowSecurityException()
         {
             // Arrange
             var unitOfWork = new UnitOfWork<TestDbContext>(_context, _logger);

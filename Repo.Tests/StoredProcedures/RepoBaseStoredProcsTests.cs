@@ -71,7 +71,6 @@ namespace Repo.Tests.StoredProcedures
         {
             // Arrange
             _whitelistMock.Setup(w => w.IsAllowed("sp_NotAllowed")).Returns(false);
-            _whitelistMock.Setup(w => w.RequireWhitelist).Returns(true);
 
             var repo = new RepoBase<SpTestEntity, TestDbContext>(_context, _logger, null, null, _whitelistMock.Object);
 
@@ -85,7 +84,6 @@ namespace Repo.Tests.StoredProcedures
         {
             // Arrange
             _whitelistMock.Setup(w => w.IsAllowed("sp_GetEntities")).Returns(true);
-            _whitelistMock.Setup(w => w.RequireWhitelist).Returns(true);
 
             // Add test entity
             _context.SpTestEntities.Add(new SpTestEntity { Id = 1, Name = "Test" });
@@ -130,7 +128,6 @@ namespace Repo.Tests.StoredProcedures
         {
             // Arrange
             _whitelistMock.Setup(w => w.IsAllowed("sp_DeleteData")).Returns(false);
-            _whitelistMock.Setup(w => w.RequireWhitelist).Returns(true);
 
             var repo = new RepoBase<SpTestEntity, TestDbContext>(_context, _logger, null, null, _whitelistMock.Object);
 
@@ -161,7 +158,6 @@ namespace Repo.Tests.StoredProcedures
         {
             // Arrange
             _whitelistMock.Setup(w => w.IsAllowed("fn_NotAllowed")).Returns(false);
-            _whitelistMock.Setup(w => w.RequireWhitelist).Returns(true);
 
             var repo = new RepoBase<SpTestEntity, TestDbContext>(_context, _logger, null, null, _whitelistMock.Object);
 
@@ -192,7 +188,6 @@ namespace Repo.Tests.StoredProcedures
         {
             // Arrange
             _whitelistMock.Setup(w => w.IsAllowed("fn_GetData")).Returns(false);
-            _whitelistMock.Setup(w => w.RequireWhitelist).Returns(true);
 
             var repo = new RepoBase<SpTestEntity, TestDbContext>(_context, _logger, null, null, _whitelistMock.Object);
 

@@ -70,7 +70,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "sp_Other" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
             var sql = "SELECT * FROM TestEntities WHERE Value > {0}";
 
             // Act
@@ -91,7 +91,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "sp_GetUsers" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
             var sql = "SELECT * FROM TestEntities";
 
             // Act & Assert
@@ -111,7 +111,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "SELECT" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
             var sql = "SELECT * FROM TestEntities WHERE Value > {0}";
 
             // Act
@@ -132,7 +132,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "sp_AllowedUpdate" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
             var sql = "UPDATE TestEntities SET Value = 999";
 
             // Act & Assert
@@ -152,7 +152,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "UPDATE" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
             var sql = "UPDATE TestEntities SET Value = Value + 10 WHERE Value < 200";
 
             // Act
@@ -172,7 +172,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "fn_Allowed" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
 
             // Act & Assert
             var ex = Assert.ThrowsAsync<SecurityException>(async () =>
@@ -191,7 +191,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "tvf_Allowed" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
 
             // Act & Assert
             var ex = Assert.ThrowsAsync<SecurityException>(async () =>
@@ -210,7 +210,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "fn_Count" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
 
             // Act & Assert - The validation should pass, but execution may fail due to SQLite limitations
             // We're testing that validation happens before execution
@@ -241,7 +241,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "tvf_GetAll" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
 
             // Act & Assert - The validation should pass, but execution may fail due to SQLite limitations
             Assert.DoesNotThrowAsync(async () =>
@@ -283,7 +283,7 @@ namespace Repo.Tests.Security
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
 
             // Act - Should not throw
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
 
             // Assert
             Assert.That(repo, Is.Not.Null);
@@ -299,7 +299,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string> { "sp_Test" }
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
 
             // Act & Assert - Empty string is not null, so it should go through validation
             // and fail because it's not in the whitelist
@@ -317,7 +317,7 @@ namespace Repo.Tests.Security
                 WhitelistedProcedures = new List<string>()
             };
             var whitelist = new DefaultStoredProcedureWhitelist(Options.Create(spOptions));
-            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, whitelist);
+            var repo = new RepoBase<TestEntity, TestDbContext>(_context, _logger, null, null, whitelist);
             var sql = "SELECT * FROM TestEntities";
 
             // Act & Assert - None should throw SecurityException

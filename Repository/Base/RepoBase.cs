@@ -43,12 +43,13 @@ namespace Repo.Repository.Base
         protected readonly IStoredProcedureWhitelist? Whitelist; // Field for stored procedure whitelist
         private bool _disposed = false;
 
-        public RepoBase(TContext context, ILogger logger, ICacheService? cacheService = null, IRetryPolicy? retryPolicy = null)
+        public RepoBase(TContext context, ILogger logger, ICacheService? cacheService = null, IRetryPolicy? retryPolicy = null, IStoredProcedureWhitelist? whitelist = null)
         {
             Db = context ?? throw new ArgumentNullException(nameof(context));
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             CacheService = cacheService;
             RetryPolicy = retryPolicy;
+            Whitelist = whitelist;
             Table = Db.Set<T>();
         }
 

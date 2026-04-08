@@ -23,6 +23,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repo.Repository.Exceptions;
 using Repo.Repository.Retry;
+using System.Linq.Expressions;
 using System.Threading;
 
 namespace Repo.Repository.Base

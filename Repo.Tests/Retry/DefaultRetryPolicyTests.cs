@@ -2,17 +2,20 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NUnit.Framework;
 using Repo.Repository.Retry;
 using System.Diagnostics;
 
 namespace Repo.Tests.Retry
 {
+    [TestFixture]
     public class DefaultRetryPolicyTests
     {
-        private readonly Mock<ILogger<DefaultRetryPolicy>> _loggerMock;
-        private readonly RetryPolicyOptions _defaultOptions;
+        private Mock<ILogger<DefaultRetryPolicy>> _loggerMock = null!;
+        private RetryPolicyOptions _defaultOptions = null!;
 
-        public DefaultRetryPolicyTests()
+        [SetUp]
+        public void Setup()
         {
             _loggerMock = new Mock<ILogger<DefaultRetryPolicy>>();
             _defaultOptions = new RetryPolicyOptions
@@ -34,7 +37,7 @@ namespace Repo.Tests.Retry
 
         #region Success Scenarios
 
-        [Fact]
+        [Test]
         public async Task ExecuteAsync_WithSuccess_ShouldNotRetry()
         {
             // Arrange
@@ -51,11 +54,11 @@ namespace Repo.Tests.Retry
             var result = await policy.ExecuteAsync(Operation);
 
             // Assert
-            Assert.Equal(42, result);
-            Assert.Equal(1, callCount);
+            Assert.That(result, Is.EqualTo(42));
+            Assert.That(callCount, Is.EqualTo(1));
         }
 
-        [Fact]
+        [Test]
         public async Task ExecuteAsync_Void_WithSuccess_ShouldNotRetry()
         {
             // Arrange
@@ -72,22 +75,22 @@ namespace Repo.Tests.Retry
             await policy.ExecuteAsync(Operation);
 
             // Assert
-            Assert.Equal(1, callCount);
+            Assert.That(callCount, Is.EqualTo(1));
         }
 
         #endregion
 
         #region Transient Exception Scenarios
 
-        [Theory]
-        [InlineData(-2)]    // Timeout expired
-        [InlineData(53)]    // Could not establish connection
-        [InlineData(258)]   // Timeout waiting for server response
-        [InlineData(4060)]  // Cannot open database
-        [InlineData(18456)] // Login failed for user
-        [InlineData(40197)] // Azure SQL - service error
-        [InlineData(40501)] // Azure SQL - service busy
-        [InlineData(40613)] // Azure SQL - database unavailable
+        [Test]
+        [TestCase(-2)]    // Timeout expired
+        [TestCase(53)]    // Could not establish connection
+        [TestCase(258)]   // Timeout waiting for server response
+        [TestCase(4060)]  // Cannot open database
+        [TestCase(18456)] // Login failed for user
+        [TestCase(40197)] // Azure SQL - service error
+        [TestCase(40501)] // Azure SQL - service busy
+        [TestCase(40613)] // Azure SQL - database unavailable
         public async Task ExecuteAsync_WithTransientSqlException_ShouldRetry(int errorNumber)
         {
             // Arrange
@@ -110,12 +113,12 @@ namespace Repo.Tests.Retry
             var result = await policy.ExecuteAsync(Operation);
 
             // Assert
-            Assert.Equal(42, result);
-            Assert.Equal(3, callCount);
+            Assert.That(result, Is.EqualTo(42));
+            Assert.That(callCount, Is.EqualTo(3));
             VerifyLoggerWarningLogged();
         }
 
-        [Fact]
+        [Test]
         public async Task ExecuteAsync_WithTimeoutException_ShouldRetry()
         {
             // Arrange
@@ -136,12 +139,12 @@ namespace Repo.Tests.Retry
             var result = await policy.ExecuteAsync(Operation);
 
             // Assert
-            Assert.Equal(42, result);
-            Assert.Equal(3, callCount);
+            Assert.That(result, Is.EqualTo(42));
+            Assert.That(callCount, Is.EqualTo(3));
             VerifyLoggerWarningLogged();
         }
 
-        [Fact]
+        [Test]
         public async Task ExecuteAsync_WithOperationCanceledException_ShouldRetry()
         {
             // Arrange
@@ -162,12 +165,12 @@ namespace Repo.Tests.Retry
             var result = await policy.ExecuteAsync(Operation);
 
             // Assert
-            Assert.Equal(42, result);
-            Assert.Equal(3, callCount);
+            Assert.That(result, Is.EqualTo(42));
+            Assert.That(callCount, Is.EqualTo(3));
             VerifyLoggerWarningLogged();
         }
 
-        [Fact]
+        [Test]
         public async Task ExecuteAsync_WithTransientInnerException_ShouldRetry()
         {
             // Arrange
@@ -191,16 +194,16 @@ namespace Repo.Tests.Retry
             var result = await policy.ExecuteAsync(Operation);
 
             // Assert
-            Assert.Equal(42, result);
-            Assert.Equal(3, callCount);
+            Assert.That(result, Is.EqualTo(42));
+            Assert.That(callCount, Is.EqualTo(3));
         }
 
         #endregion
 
         #region Non-Transient Exception Scenarios
 
-        [Fact]
-        public async Task ExecuteAsync_WithNonTransientException_ShouldNotRetry()
+        [Test]
+        public void ExecuteAsync_WithNonTransientException_ShouldNotRetry()
         {
             // Arrange
             var policy = CreatePolicy();
@@ -213,15 +216,15 @@ namespace Repo.Tests.Retry
             }
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => policy.ExecuteAsync(Operation));
+            var exception = Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await policy.ExecuteAsync(Operation));
 
-            Assert.Equal("Non-transient error", exception.Message);
-            Assert.Equal(1, callCount);
+            Assert.That(exception.Message, Is.EqualTo("Non-transient error"));
+            Assert.That(callCount, Is.EqualTo(1));
         }
 
-        [Fact]
-        public async Task ExecuteAsync_WithNonTransientSqlException_ShouldNotRetry()
+        [Test]
+        public void ExecuteAsync_WithNonTransientSqlException_ShouldNotRetry()
         {
             // Arrange
             var policy = CreatePolicy();
@@ -236,16 +239,16 @@ namespace Repo.Tests.Retry
             }
 
             // Act & Assert
-            await Assert.ThrowsAsync<SqlException>(() => policy.ExecuteAsync(Operation));
-            Assert.Equal(1, callCount);
+            Assert.ThrowsAsync<SqlException>(async () => await policy.ExecuteAsync(Operation));
+            Assert.That(callCount, Is.EqualTo(1));
         }
 
         #endregion
 
         #region Max Retry Scenarios
 
-        [Fact]
-        public async Task ExecuteAsync_WithMaxRetriesExceeded_ShouldThrow()
+        [Test]
+        public void ExecuteAsync_WithMaxRetriesExceeded_ShouldThrow()
         {
             // Arrange
             var options = new RetryPolicyOptions
@@ -264,8 +267,8 @@ namespace Repo.Tests.Retry
             }
 
             // Act & Assert
-            await Assert.ThrowsAsync<TimeoutException>(() => policy.ExecuteAsync(Operation));
-            Assert.Equal(3, callCount); // Initial + 2 retries
+            Assert.ThrowsAsync<TimeoutException>(async () => await policy.ExecuteAsync(Operation));
+            Assert.That(callCount, Is.EqualTo(3)); // Initial + 2 retries
             VerifyLoggerErrorLogged();
         }
 
@@ -273,8 +276,8 @@ namespace Repo.Tests.Retry
 
         #region Exponential Backoff Scenarios
 
-        [Fact]
-        public async Task ExecuteAsync_WithExponentialBackoff_ShouldIncreaseDelay()
+        [Test]
+        public void ExecuteAsync_WithExponentialBackoff_ShouldIncreaseDelay()
         {
             // Arrange
             var options = new RetryPolicyOptions
@@ -310,16 +313,16 @@ namespace Repo.Tests.Retry
             }
 
             // Act & Assert
-            await Assert.ThrowsAsync<TimeoutException>(() => policy.ExecuteAsync(Operation));
+            Assert.ThrowsAsync<TimeoutException>(async () => await policy.ExecuteAsync(Operation));
 
             // Verify exponential backoff: 100ms, 200ms, 400ms
-            Assert.True(delays.Count >= 2);
-            Assert.True(delays[0] >= TimeSpan.FromMilliseconds(80), $"First delay was {delays[0]}");
-            Assert.True(delays[1] >= TimeSpan.FromMilliseconds(160), $"Second delay was {delays[1]}");
+            Assert.That(delays.Count, Is.GreaterThanOrEqualTo(2));
+            Assert.That(delays[0], Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(80)), $"First delay was {delays[0]}");
+            Assert.That(delays[1], Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(160)), $"Second delay was {delays[1]}");
         }
 
-        [Fact]
-        public async Task ExecuteAsync_WithFixedDelay_ShouldNotIncrease()
+        [Test]
+        public void ExecuteAsync_WithFixedDelay_ShouldNotIncrease()
         {
             // Arrange
             var options = new RetryPolicyOptions
@@ -354,16 +357,16 @@ namespace Repo.Tests.Retry
             }
 
             // Act & Assert
-            await Assert.ThrowsAsync<TimeoutException>(() => policy.ExecuteAsync(Operation));
+            Assert.ThrowsAsync<TimeoutException>(async () => await policy.ExecuteAsync(Operation));
 
             // Verify fixed delay
-            Assert.True(delays.Count >= 2);
-            Assert.True(delays[0] >= TimeSpan.FromMilliseconds(40), $"First delay was {delays[0]}");
-            Assert.True(delays[1] >= TimeSpan.FromMilliseconds(40), $"Second delay was {delays[1]}");
+            Assert.That(delays.Count, Is.GreaterThanOrEqualTo(2));
+            Assert.That(delays[0], Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(40)), $"First delay was {delays[0]}");
+            Assert.That(delays[1], Is.GreaterThanOrEqualTo(TimeSpan.FromMilliseconds(40)), $"Second delay was {delays[1]}");
         }
 
-        [Fact]
-        public async Task ExecuteAsync_WithMaxDelayCap_ShouldNotExceedMax()
+        [Test]
+        public void ExecuteAsync_WithMaxDelayCap_ShouldNotExceedMax()
         {
             // Arrange
             var options = new RetryPolicyOptions
@@ -386,11 +389,11 @@ namespace Repo.Tests.Retry
 
             // Act
             var stopwatch = Stopwatch.StartNew();
-            await Assert.ThrowsAsync<TimeoutException>(() => policy.ExecuteAsync(Operation));
+            Assert.ThrowsAsync<TimeoutException>(async () => await policy.ExecuteAsync(Operation));
             stopwatch.Stop();
 
             // Assert - should complete quickly due to max delay cap
-            Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(2), 
+            Assert.That(stopwatch.Elapsed, Is.LessThan(TimeSpan.FromSeconds(2)), 
                 $"Should not take too long with max delay cap. Elapsed: {stopwatch.Elapsed}");
         }
 
@@ -398,8 +401,8 @@ namespace Repo.Tests.Retry
 
         #region Disable Retry Scenarios
 
-        [Fact]
-        public async Task ExecuteAsync_WithRetryDisabled_ShouldNotRetry()
+        [Test]
+        public void ExecuteAsync_WithRetryDisabled_ShouldNotRetry()
         {
             // Arrange
             var options = new RetryPolicyOptions
@@ -417,16 +420,16 @@ namespace Repo.Tests.Retry
             }
 
             // Act & Assert
-            await Assert.ThrowsAsync<TimeoutException>(() => policy.ExecuteAsync(Operation));
-            Assert.Equal(1, callCount);
+            Assert.ThrowsAsync<TimeoutException>(async () => await policy.ExecuteAsync(Operation));
+            Assert.That(callCount, Is.EqualTo(1));
         }
 
         #endregion
 
         #region Constructor Overload Tests
 
-        [Fact]
-        public async Task ExecuteAsync_WithExplicitOptions_ShouldUseOptions()
+        [Test]
+        public void ExecuteAsync_WithExplicitOptions_ShouldUseOptions()
         {
             // Arrange
             var options = new RetryPolicyOptions
@@ -445,8 +448,8 @@ namespace Repo.Tests.Retry
             }
 
             // Act & Assert
-            await Assert.ThrowsAsync<TimeoutException>(() => policy.ExecuteAsync(Operation));
-            Assert.Equal(2, callCount); // Initial + 1 retry
+            Assert.ThrowsAsync<TimeoutException>(async () => await policy.ExecuteAsync(Operation));
+            Assert.That(callCount, Is.EqualTo(2)); // Initial + 1 retry
         }
 
         #endregion
@@ -482,7 +485,8 @@ namespace Repo.Tests.Retry
         #region SqlException Builder Helper
 
         /// <summary>
-        /// Helper class to build SqlException instances for testing
+        /// Helper class to build SqlException instances for testing using reflection
+        /// since SqlError and SqlErrorCollection don't have public constructors.
         /// </summary>
         private class SqlExceptionBuilder
         {
@@ -498,79 +502,41 @@ namespace Repo.Tests.Retry
 
             public SqlException Build()
             {
-                // SqlException has a private constructor, so we use reflection
-                var errorCollection = CreateErrorCollection();
-                var exception = typeof(SqlException).GetMethod(
-                    "CreateSqlException",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static,
+                // Create SqlError using reflection (constructor is internal)
+                var sqlErrorType = typeof(SqlError);
+                var sqlErrorConstructor = sqlErrorType.GetConstructor(
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
                     null,
-                    new[] { typeof(SqlErrorCollection), typeof(string), typeof(Guid) },
+                    new[] { typeof(int), typeof(byte), typeof(byte), typeof(string), typeof(string), typeof(string), typeof(int), typeof(uint) },
                     null);
+                
+                var error = (SqlError)sqlErrorConstructor!.Invoke(new object[] { _errorNumber, (byte)1, (byte)1, "Server", _errorMessage, "Proc", 0, (uint)0 });
 
-                if (exception != null)
-                {
-                    return (SqlException)exception.Invoke(null, new object[] { errorCollection, "Server", Guid.NewGuid() })!;
-                }
-
-                // Fallback: throw standard SqlException
-                throw new SqlException(_errorMessage, new Exception("Inner"));
-            }
-
-            private SqlErrorCollection CreateErrorCollection()
-            {
-                // Create a SqlErrorCollection using reflection
-                var collection = typeof(SqlErrorCollection).GetConstructor(
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
+                // Create SqlErrorCollection using reflection (constructor is internal)
+                var errorCollectionType = typeof(SqlErrorCollection);
+                var errorCollectionConstructor = errorCollectionType.GetConstructor(
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
                     null,
                     Type.EmptyTypes,
-                    null)?.Invoke(null) as SqlErrorCollection;
+                    null);
+                
+                var errorCollection = (SqlErrorCollection)errorCollectionConstructor!.Invoke(null);
 
-                if (collection == null)
-                {
-                    throw new InvalidOperationException("Failed to create SqlErrorCollection");
-                }
+                // Add error to collection using reflection (Add method is internal)
+                var addMethod = errorCollectionType.GetMethod("Add", 
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                addMethod!.Invoke(errorCollection, new object[] { error });
 
-                // Add error to collection using reflection
-                var addMethod = typeof(SqlErrorCollection).GetMethod(
-                    "Add",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-                if (addMethod != null)
-                {
-                    var error = CreateSqlError();
-                    addMethod.Invoke(collection, new object[] { error });
-                }
-
-                return collection;
-            }
-
-            private object CreateSqlError()
-            {
-                // Create SqlError using reflection
-                var errorType = typeof(SqlError);
-                var constructor = errorType.GetConstructor(
+                // Create SqlException using reflection
+                var exceptionConstructor = typeof(SqlException).GetConstructor(
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance,
                     null,
-                    new[] { typeof(int), typeof(byte), typeof(byte), typeof(string), typeof(string), typeof(string), typeof(int), typeof(uint), typeof(Exception) },
-                    null);
-
-                if (constructor != null)
-                {
-                    return constructor.Invoke(new object[]
-                    {
-                        _errorNumber, // errorCode
-                        (byte)0,      // errorClass
-                        (byte)0,      // state
-                        "Server",     // server
-                        _errorMessage, // message
-                        "Procedure",  // procedure
-                        0,            // lineNumber
-                        (uint)0,      // win32ErrorCode
-                        null          // exception
-                    });
-                }
-
-                throw new InvalidOperationException("Failed to create SqlError");
+                    new[] { typeof(string), typeof(SqlErrorCollection), typeof(Exception), typeof(Guid) },
+                    null)!;
+                
+                var exception = (SqlException)exceptionConstructor.Invoke(new object[] { _errorMessage, errorCollection, null!, Guid.NewGuid() });
+                
+                return exception;
             }
         }
 

@@ -252,7 +252,7 @@ namespace Repo.Tests.Base
             // Act & Assert
             Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
-                await repo.ProcessParallelAsync(items, async _ =>
+                await repo.ProcessParallelAsync<object>(items, async (HighPerfEntity _) =>
                 {
                     await Task.CompletedTask;
                     throw new InvalidOperationException("Test error");
@@ -292,7 +292,7 @@ namespace Repo.Tests.Base
             // Act & Assert
             Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
-                await repo.ExecuteInTransactionAsync(async () =>
+                await repo.ExecuteInTransactionAsync<int>(async () =>
                 {
                     _context.HighPerfEntities.Add(new HighPerfEntity { Name = "Transaction Test" });
                     await _context.SaveChangesAsync();

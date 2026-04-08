@@ -10,7 +10,7 @@ namespace Repo.Repository.Specifications
     /// The Specification pattern encapsulates query criteria and allows for reusable, composable queries.
     /// Use with IRepo methods like GetBySpecAsync, GetAllBySpecAsync, and GetPagedBySpecAsync.
     /// </remarks>
-    public interface ISpecification<T>
+    public interface ISpecification<T> where T : class
     {
         /// <summary>
         /// Gets the filter criteria expression.
@@ -70,7 +70,7 @@ namespace Repo.Repository.Specifications
     /// </summary>
     /// <typeparam name="T">The entity type.</typeparam>
     /// <typeparam name="TResult">The projected result type.</typeparam>
-    public interface ISpecification<T, TResult> : ISpecification<T>
+    public interface ISpecification<T, TResult> : ISpecification<T> where T : class
     {
         /// <summary>
         /// Gets the projection expression to transform entities to the result type.
@@ -86,7 +86,7 @@ namespace Repo.Repository.Specifications
     /// Inherit from this class to create custom specifications. Use the protected methods to configure
     /// the specification with criteria, includes, ordering, and paging.
     /// </remarks>
-    public abstract class BaseSpecification<T> : ISpecification<T>
+    public abstract class BaseSpecification<T> : ISpecification<T> where T : class
     {
         /// <summary>
         /// Gets the filter criteria expression.
