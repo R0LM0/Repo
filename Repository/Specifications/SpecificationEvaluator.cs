@@ -51,5 +51,25 @@ namespace Repo.Repository.Specifications
 
             return query;
         }
+
+        /// <summary>
+        /// Evaluates a specification with projection and returns a queryable of the projected type.
+        /// </summary>
+        /// <typeparam name="TResult">The projected result type.</typeparam>
+        /// <param name="inputQuery">The input queryable.</param>
+        /// <param name="spec">The specification with projection.</param>
+        /// <returns>A queryable of the projected type.</returns>
+        public static IQueryable<TResult> GetQuery<TResult>(IQueryable<T> inputQuery, ISpecification<T, TResult> spec)
+        {
+            var query = GetQuery(inputQuery, (ISpecification<T>)spec);
+
+            // Apply projection if selector is defined
+            if (spec.Selector != null)
+            {
+                return query.Select(spec.Selector);
+            }
+
+            throw new InvalidOperationException("Selector must be defined when using projected specification.");
+        }
     }
 }

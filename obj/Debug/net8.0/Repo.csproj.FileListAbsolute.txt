@@ -1,0 +1,15 @@
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.csproj.AssemblyReference.cache
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.GeneratedMSBuildEditorConfig.editorconfig
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.AssemblyInfoInputs.cache
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.AssemblyInfo.cs
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.csproj.CoreCompileInputs.cache
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.sourcelink.json
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.xml
+D:\WORKSPACES\.NET\.NET8\Repo\bin\Debug\net8.0\Repo.deps.json
+D:\WORKSPACES\.NET\.NET8\Repo\bin\Debug\net8.0\Repo.dll
+D:\WORKSPACES\.NET\.NET8\Repo\bin\Debug\net8.0\Repo.pdb
+D:\WORKSPACES\.NET\.NET8\Repo\bin\Debug\net8.0\Repo.xml
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.dll
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\refint\Repo.dll
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\Repo.pdb
+D:\WORKSPACES\.NET\.NET8\Repo\obj\Debug\net8.0\ref\Repo.dll

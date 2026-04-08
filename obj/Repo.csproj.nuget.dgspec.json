@@ -1,39 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj": {}
+    "D:\\WORKSPACES\\.NET\\.NET8\\Repo\\Repo.csproj": {}
   },
   "projects": {
-    "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj": {
-      "version": "1.0.0",
+    "D:\\WORKSPACES\\.NET\\.NET8\\Repo\\Repo.csproj": {
+      "version": "1.0.6",
       "restore": {
-        "projectUniqueName": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj",
-        "projectName": "AdvancedRepository.NET9",
-        "projectPath": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\Repo.csproj",
-        "packagesPath": "C:\\Users\\losorio\\.nuget\\packages\\",
-        "outputPath": "E:\\WORKSPACE\\.NET\\.NET9\\Repo\\obj\\",
+        "projectUniqueName": "D:\\WORKSPACES\\.NET\\.NET8\\Repo\\Repo.csproj",
+        "projectName": "AdvancedRepository.NET8",
+        "projectPath": "D:\\WORKSPACES\\.NET\\.NET8\\Repo\\Repo.csproj",
+        "packagesPath": "C:\\Users\\r0lm0\\.nuget\\packages\\",
+        "outputPath": "D:\\WORKSPACES\\.NET\\.NET8\\Repo\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
-          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
-        ],
+        "crossTargeting": true,
         "configFilePaths": [
-          "C:\\Users\\losorio\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+          "C:\\Users\\r0lm0\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net9.0"
+          "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net9.0": {
-            "targetAlias": "net9.0",
+          "net8.0": {
+            "targetAlias": "net8.0",
             "projectReferences": {}
           }
         },
@@ -47,60 +39,63 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
-        "net9.0": {
-          "targetAlias": "net9.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "dependencies": {
-            "AutoMapper": {
+            "Azure.Identity": {
               "target": "Package",
-              "version": "[12.0.1, )"
-            },
-            "AutoMapper.Extensions.Microsoft.DependencyInjection": {
-              "target": "Package",
-              "version": "[12.0.1, )"
+              "version": "[1.13.2, )"
             },
             "EFCore.BulkExtensions": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[8.0.4, )"
             },
             "FluentValidation": {
               "target": "Package",
-              "version": "[11.9.0, )"
+              "version": "[11.11.0, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[8.0.12, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[8.0.12, )"
             },
             "Microsoft.Extensions.Caching.StackExchangeRedis": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[8.0.12, )"
             },
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[8.0.1, )"
+            },
+            "Microsoft.Extensions.DependencyInjection.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.2, )"
             },
             "Microsoft.Extensions.Diagnostics.HealthChecks": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[8.0.12, )"
             },
             "Microsoft.Extensions.Logging.Abstractions": {
               "target": "Package",
-              "version": "[9.0.6, )"
+              "version": "[8.0.2, )"
+            },
+            "Microsoft.Identity.Client": {
+              "target": "Package",
+              "version": "[4.67.2, )"
             },
             "System.Threading.Tasks.Dataflow": {
               "target": "Package",
-              "version": "[8.0.0, )"
+              "version": "[9.0.0, )"
             }
           },
           "imports": [
@@ -119,7 +114,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.417/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
