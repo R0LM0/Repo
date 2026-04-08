@@ -1,5 +1,5 @@
 is_global = true
-build_property.TargetFramework = net9.0
+build_property.TargetFramework = net8.0
 build_property.TargetPlatformMinVersion = 
 build_property.UsingMicrosoftNETSdkWeb = 
 build_property.ProjectTypeGuids = 
@@ -8,6 +8,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Repo
-build_property.ProjectDir = d:\WORKSPACES\.NET\.NET8\Repo\
+build_property.ProjectDir = D:\WORKSPACES\.NET\.NET8\Repo\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 

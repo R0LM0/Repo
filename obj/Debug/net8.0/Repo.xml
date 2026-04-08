@@ -1,0 +1,1909 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Repo</name>
+    </assembly>
+    <members>
+        <member name="T:Repo.Repository.Base.CompiledQueries`2">
+            <summary>
+            Provides compiled query delegates for high-performance database operations.
+            
+            <para>
+            Compiled queries are pre-compiled LINQ expressions that skip the expression tree
+            compilation step on each execution. This provides 20-30% performance improvement
+            for frequently used queries at the cost of increased memory usage.
+            </para>
+            
+            <para>
+            Tradeoffs:
+            - Performance: 20-30% faster execution for repeated queries
+            - Memory: Higher memory usage due to cached compiled delegates
+            - Flexibility: Limited to specific query patterns (no dynamic predicates)
+            - Startup: Slight increase in startup time for initial compilation
+            </para>
+            
+            <para>
+            When to use:
+            - High-frequency queries (GetById, GetAll in hot paths)
+            - Stable query patterns that don't change per request
+            - Scenarios where query compilation time is a bottleneck
+            </para>
+            
+            <para>
+            When NOT to use:
+            - Dynamic queries with varying predicates
+            - One-off or rarely executed queries
+            - Memory-constrained environments
+            </para>
+            </summary>
+            <typeparam name="T">The entity type.</typeparam>
+            <typeparam name="TContext">The database context type.</typeparam>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledQueries`2.#cctor">
+            <summary>
+            Static constructor initializes compiled query delegates.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledQueries`2.Initialize(Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes the compiled queries. Must be called before using any compiled query methods.
+            </summary>
+            <param name="logger">Optional logger for initialization diagnostics.</param>
+        </member>
+        <member name="P:Repo.Repository.Base.CompiledQueries`2.IsInitialized">
+            <summary>
+            Gets a value indicating whether the compiled queries have been initialized.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledQueries`2.GetByIdAsync(`1,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by its integer ID using a compiled query.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledQueries`2.GetByIdAsync(`1,System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by its long ID using a compiled query.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledQueries`2.GetAllAsync(`1,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities using a compiled query.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledQueries`2.CountAsync(`1,System.Threading.CancellationToken)">
+            <summary>
+            Counts all entities using a compiled query.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledQueries`2.CountAsync(`1,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Counts entities matching a predicate using a compiled query.
+            </summary>
+            <remarks>
+            Note: This uses EF.CompileAsyncQuery which has limitations with expression parameters.
+            For complex predicates, the standard CountAsync may be more appropriate.
+            </remarks>
+        </member>
+        <member name="T:Repo.Repository.Base.CompiledRepoBase`2">
+            <summary>
+            Repository implementation with compiled query support for high-performance scenarios.
+            
+            <para>
+            This class extends <see cref="T:Repo.Repository.Base.RepoBase`2"/> to provide compiled query
+            optimizations for frequently used operations. Compiled queries are pre-compiled LINQ
+            expressions that skip the expression tree compilation step, providing 20-30% performance
+            improvement for hot path operations.
+            </para>
+            
+            <para>
+            Usage:
+            <code>
+            // Enable compiled queries via options
+            var options = new RepoOptions { EnableCompiledQueries = true };
+            var repo = new CompiledRepoBase&lt;MyEntity, MyContext&gt;(context, logger, options);
+            
+            // Use normally - compiled queries are used automatically for supported operations
+            var entity = await repo.GetById(1);
+            var all = await repo.GetAllAsync();
+            var count = await repo.CountAsync(e => e.IsActive);
+            </code>
+            </para>
+            
+            <para>
+            Operations that use compiled queries when enabled:
+            - GetById(int id)
+            - GetById(long id)
+            - GetAllAsync(bool asNoTracking)
+            - CountAsync() - when called without predicate
+            </para>
+            
+            <para>
+            IMPORTANT: Compiled queries are opt-in via <see cref="P:Repo.Repository.Base.RepoOptions.EnableCompiledQueries"/>.
+            They provide significant performance benefits for high-frequency operations but use
+            additional memory. Enable only after profiling identifies query compilation as a bottleneck.
+            </para>
+            </summary>
+            <typeparam name="T">The entity type.</typeparam>
+            <typeparam name="TContext">The database context type.</typeparam>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledRepoBase`2.#ctor(`1,Microsoft.Extensions.Logging.ILogger,Repo.Repository.Base.RepoOptions,Repo.Repository.Interfaces.ICacheService,Repo.Repository.Security.IStoredProcedureWhitelist)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Base.CompiledRepoBase`2"/> class.
+            </summary>
+            <param name="context">The database context.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="options">Repository options. If null, defaults to disabled compiled queries.</param>
+            <param name="cacheService">Optional cache service.</param>
+            <param name="whitelist">Optional whitelist for stored procedure validation.</param>
+        </member>
+        <member name="P:Repo.Repository.Base.CompiledRepoBase`2.Options">
+            <summary>
+            Gets the repository options.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Base.CompiledRepoBase`2.IsCompiledQueriesEnabled">
+            <summary>
+            Gets a value indicating whether compiled queries are enabled and initialized.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledRepoBase`2.GetById(System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledRepoBase`2.GetById(System.Int64,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledRepoBase`2.GetAllAsync(System.Boolean,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledRepoBase`2.GetAllAsync(System.Int32,System.Boolean,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledRepoBase`2.CountAllAsync(System.Threading.CancellationToken)">
+            <summary>
+            Counts all entities using a compiled query when enabled.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.CompiledRepoBase`2.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Repo.Repository.Base.HighPerformanceRepo`2">
+            <summary>
+            Repositorio optimizado para alto rendimiento - miles de transacciones por segundo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.IHighPerformanceRepo`1">
+            <summary>
+            Interface for high-performance operations optimized for thousands of transactions per second
+            </summary>
+            <typeparam name="T">Entity type</typeparam>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkInsertAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Inserts thousands of records optimized using bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkUpdateAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Updates thousands of records optimized
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkDeleteAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Deletes thousands of records optimized
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkDeleteAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Deletes records by predicate using bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkMergeAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Optimized merge (insert/update) operation
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ProcessBatchAsync``1(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Func{System.Collections.Generic.IEnumerable{`0},System.Threading.Tasks.Task{``0}},System.Int32,System.Int32)">
+            <summary>
+            Processes large data volumes in batches to avoid memory issues
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ProcessParallelAsync``1(System.Collections.Generic.IEnumerable{`0},System.Func{`0,System.Threading.Tasks.Task{``0}},System.Int32)">
+            <summary>
+            Processes data in parallel with concurrency control
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.StreamAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Int32)">
+            <summary>
+            Gets data in streaming to avoid loading everything in memory
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.GetPagedOptimizedAsync(Repo.Repository.Models.PagedRequest,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Gets optimized paginated data for large volumes
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteWithMetricsAsync(System.Func{System.Threading.Tasks.Task})">
+            <summary>
+            Executes operation with performance metrics
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteWithMetricsAsync``1(System.Func{System.Threading.Tasks.Task{``0}})">
+            <summary>
+            Executes operation with performance metrics and returns result
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ConfigureForHighPerformance(System.Int32,System.Boolean)">
+            <summary>
+            Configures context for high-performance operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ClearContextAsync">
+            <summary>
+            Clears context to free memory
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteInTransactionAsync``1(System.Func{System.Threading.Tasks.Task{``0}},System.Data.IsolationLevel)">
+            <summary>
+            Executes operation in optimized transaction for large volumes
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteDistributedTransactionAsync(System.Func{System.Threading.Tasks.Task}[])">
+            <summary>
+            Executes multiple operations in distributed transaction
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.PerformanceMetrics">
+            <summary>
+            Performance metrics for monitoring
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.IRepo`1">
+            <summary>
+            Repository interface for entity operations.
+            
+            Transaction Management:
+            - Use IUnitOfWork for all transaction orchestration
+            - Repositories obtained via IUnitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
+            
+            Retry Policy for Transient Faults:
+            - Read operations (GetAllAsync, GetById, FindAsync, GetPagedAsync, GetBySpecAsync, GetAllBySpecAsync) 
+              automatically retry on transient database failures
+            - Configure via AddRepositoryRetryPolicy() in DI container during startup
+            - Only safe operations are retried. Write operations (Insert, Update, Delete) are NOT retried
+              unless they are explicitly idempotent
+            - Default: 3 retries with exponential backoff (200ms, 400ms, 800ms)
+            - Handles: SqlException transient errors, TimeoutException, InvalidOperationException (EF Core transient errors)
+            - To disable retry globally: services.AddRepositoryRetryPolicy(options => options.EnableRetry = false)
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.Find(System.Nullable{System.Int32})">
+            <summary>
+            Finds an entity by its integer ID.
+            </summary>
+            <param name="id">The entity ID. Can be null.</param>
+            <returns>The found entity.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.Find(System.Nullable{System.Int64})">
+            <summary>
+            Finds an entity by its long ID (bigint).
+            </summary>
+            <param name="id">The entity ID. Can be null.</param>
+            <returns>The found entity.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetAll(System.Boolean)">
+            <summary>
+            Gets all entities with optional no-tracking.
+            </summary>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <returns>An enumerable of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetAll(System.Int32,System.Boolean)">
+            <summary>
+            Gets all entities with optional no-tracking (overload with unused id parameter for API compatibility).
+            </summary>
+            <param name="id">Unused parameter for API compatibility.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <returns>An enumerable of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.Add(`0,System.Boolean)">
+            <summary>
+            Adds a new entity to the context.
+            </summary>
+            <param name="entity">The entity to add.</param>
+            <param name="persist">If true, saves changes immediately. Default is true.</param>
+            <returns>The number of affected rows if persisted, otherwise 0.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.Update(`0,System.Boolean)">
+            <summary>
+            Updates an existing entity in the context.
+            </summary>
+            <param name="entity">The entity to update.</param>
+            <param name="persist">If true, saves changes immediately. Default is true.</param>
+            <returns>The number of affected rows if persisted, otherwise 0.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.Delete(`0,System.Boolean)">
+            <summary>
+            Deletes an entity from the context.
+            </summary>
+            <param name="entity">The entity to delete.</param>
+            <param name="persist">If true, saves changes immediately. Default is true.</param>
+            <returns>The number of affected rows if persisted, otherwise 0.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.Save">
+            <summary>
+            Saves all changes made in the context to the database.
+            </summary>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetAllAsync(System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities asynchronously with optional no-tracking.
+            </summary>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetAllAsync(System.Int32,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities asynchronously with optional no-tracking (overload with unused id parameter).
+            </summary>
+            <param name="id">Unused parameter for API compatibility.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetById(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by its integer ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the found entity.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetById(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by its long ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the found entity.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.Insert(`0,System.Threading.CancellationToken)">
+            <summary>
+            Inserts a new entity asynchronously.
+            </summary>
+            <param name="entity">The entity to insert.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the inserted entity.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.UpdateAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Updates an entity asynchronously.
+            </summary>
+            <param name="entity">The entity to update.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the updated entity.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.DeleteAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Deletes an entity by its integer ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.DeleteAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Deletes an entity by its long ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.SaveAsync(System.Threading.CancellationToken)">
+            <summary>
+            Saves all changes made in the context to the database asynchronously.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.ExecuteStoredProcedureAsync``1(System.String,System.Threading.CancellationToken,System.Object[])">
+            <summary>
+            Executes a stored procedure that returns a result set asynchronously.
+            </summary>
+            <typeparam name="TResult">The type of entities returned by the stored procedure.</typeparam>
+            <param name="storedProcedure">The name of the stored procedure.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="parameters">Parameters to pass to the stored procedure.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of results.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when stored procedure name is null or empty.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when stored procedure is not whitelisted.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.ExecuteStoredProcedureNonQueryAsync(System.String,System.Threading.CancellationToken,System.Object[])">
+            <summary>
+            Executes a stored procedure that does not return a result set asynchronously.
+            </summary>
+            <param name="storedProcedure">The name of the stored procedure.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="parameters">Parameters to pass to the stored procedure.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when stored procedure name is null or empty.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when stored procedure is not whitelisted.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.ExecuteScalarFunctionAsync``1(System.String,System.Object[])">
+            <summary>
+            Executes a scalar database function and returns the result.
+            </summary>
+            <typeparam name="TResult">The return type of the scalar function.</typeparam>
+            <param name="functionName">Name of the database function.</param>
+            <param name="parameters">Parameters to pass to the function.</param>
+            <returns>A task representing the asynchronous operation, containing the scalar result.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when function name is null or empty.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when function is not whitelisted.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.ExecuteTableValuedFunctionAsync``1(System.String,System.Object[])">
+            <summary>
+            Executes a table-valued database function and returns the results.
+            </summary>
+            <typeparam name="TResult">The entity type returned by the function.</typeparam>
+            <param name="functionName">Name of the database function.</param>
+            <param name="parameters">Parameters to pass to the function.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of results from the table-valued function.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when function name is null or empty.</exception>
+            <exception cref="T:System.InvalidOperationException">Thrown when function is not whitelisted.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetPagedAsync(Repo.Repository.Models.PagedRequest,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets a paginated result set asynchronously.
+            </summary>
+            <param name="request">The pagination request containing page number, page size, and sorting options.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing a paginated result set.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetPagedAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},Repo.Repository.Models.PagedRequest,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets a filtered and paginated result set asynchronously.
+            </summary>
+            <param name="filter">Expression to filter entities.</param>
+            <param name="request">The pagination request containing page number, page size, and sorting options.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing a filtered paginated result set.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetBySpecAsync(Repo.Repository.Specifications.ISpecification{`0},System.Threading.CancellationToken)">
+            <summary>
+            Gets a single entity by specification asynchronously.
+            </summary>
+            <param name="spec">The specification containing criteria and includes.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the found entity or null if not found.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetAllBySpecAsync(Repo.Repository.Specifications.ISpecification{`0},System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities matching a specification asynchronously.
+            </summary>
+            <param name="spec">The specification containing criteria, includes, and ordering.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetPagedBySpecAsync(Repo.Repository.Specifications.ISpecification{`0},Repo.Repository.Models.PagedRequest,System.Threading.CancellationToken)">
+            <summary>
+            Gets a paginated result set by specification asynchronously.
+            </summary>
+            <param name="spec">The specification containing criteria, includes, ordering, and paging.</param>
+            <param name="request">The pagination request containing page number and page size.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing a paginated result set.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.CountBySpecAsync(Repo.Repository.Specifications.ISpecification{`0},System.Threading.CancellationToken)">
+            <summary>
+            Counts entities matching a specification asynchronously.
+            </summary>
+            <param name="spec">The specification containing criteria.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the count of matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.FindAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Finds entities matching a predicate asynchronously.
+            </summary>
+            <param name="predicate">Expression to filter entities.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.FindAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken,System.Linq.Expressions.Expression{System.Func{`0,System.Object}}[])">
+            <summary>
+            Finds entities matching a predicate with includes asynchronously.
+            </summary>
+            <param name="predicate">Expression to filter entities.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="includes">Expressions specifying related entities to include.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of matching entities with includes.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.FirstOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets the first entity matching a predicate or null if none found asynchronously.
+            </summary>
+            <param name="predicate">Expression to filter entities.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the first matching entity or null.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.AnyAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Determines whether any entity matches the predicate asynchronously.
+            </summary>
+            <param name="predicate">Expression to filter entities.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing true if any entity matches; otherwise, false.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Counts entities matching the predicate asynchronously.
+            </summary>
+            <param name="predicate">Expression to filter entities.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the count of matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.AddRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <summary>
+            Adds multiple entities asynchronously.
+            </summary>
+            <param name="entities">The entities to add.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.UpdateRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <summary>
+            Updates multiple entities asynchronously.
+            </summary>
+            <param name="entities">The entities to update.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.DeleteRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <summary>
+            Deletes multiple entities asynchronously.
+            </summary>
+            <param name="entities">The entities to delete.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.DeleteRangeAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Deletes entities matching a predicate asynchronously.
+            </summary>
+            <param name="predicate">Expression to filter entities to delete.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.SoftDeleteAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Soft deletes an entity by its integer ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="deletedBy">Optional identifier of the user performing the deletion.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.SoftDeleteAsync(System.Int64,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Soft deletes an entity by its long ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="deletedBy">Optional identifier of the user performing the deletion.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.SoftDeleteAsync(`0,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Soft deletes an entity asynchronously.
+            </summary>
+            <param name="entity">The entity to soft delete.</param>
+            <param name="deletedBy">Optional identifier of the user performing the deletion.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetAllIncludingDeletedAsync(System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities including soft-deleted ones asynchronously.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of all entities including soft-deleted.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.RestoreAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Restores a soft-deleted entity by its integer ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.RestoreAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Restores a soft-deleted entity by its long ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the number of affected rows.</returns>
+            <exception cref="!:EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetByIdWithCacheAsync(System.Int32,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by its integer ID with caching support asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cacheExpiration">Optional cache expiration time. Default is implementation-specific.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the found entity or null if not found.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetByIdWithCacheAsync(System.Int64,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by its long ID with caching support asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cacheExpiration">Optional cache expiration time. Default is implementation-specific.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing the found entity or null if not found.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.GetAllWithCacheAsync(System.Nullable{System.TimeSpan},System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities with caching support asynchronously.
+            </summary>
+            <param name="cacheExpiration">Optional cache expiration time. Default is implementation-specific.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation, containing an enumerable of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.InvalidateCacheAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Invalidates cache entries matching a pattern asynchronously.
+            </summary>
+            <param name="pattern">The pattern to match cache keys. Default is "*" (all).</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:Repo.Repository.Base.RepoBase`2">
+            <summary>
+            Base repository implementation for entity operations.
+            
+            Transaction Management:
+            - Use IUnitOfWork for all transaction orchestration
+            - Repositories obtained via unitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
+            
+            Retry Policy for Transient Faults:
+            - Read operations (GetAll, GetById, Find, etc.) automatically retry on transient failures
+            - Configure via AddRepositoryRetryPolicy() in DI container
+            - Only safe operations are retried. Write operations (Insert, Update, Delete) are NOT retried
+            - Default: 3 retries with exponential backoff (200ms, 400ms, 800ms)
+            
+            Recommended Usage:
+                using var unitOfWork = new UnitOfWork&lt;MyContext&gt;(context, logger);
+                await unitOfWork.BeginTransactionAsync();
+                try {
+                    var repo = unitOfWork.Repository&lt;MyEntity&gt;();
+                    await repo.Insert(entity);
+                    await unitOfWork.CommitTransactionAsync();
+                } catch {
+                    await unitOfWork.RollbackTransactionAsync();
+                    throw;
+                }
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.AddRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <summary>
+            Adds multiple entities in a single operation.
+            </summary>
+            <param name="entities">The entities to add.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.UpdateRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <summary>
+            Updates multiple entities in a single operation.
+            </summary>
+            <param name="entities">The entities to update.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.DeleteRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <summary>
+            Deletes multiple entities in a single operation.
+            </summary>
+            <param name="entities">The entities to delete.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.DeleteRangeAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Deletes all entities matching the specified predicate.
+            </summary>
+            <param name="predicate">The filter expression.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetByIdWithCacheAsync(System.Int32,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by integer ID with caching support.
+            If cache service is not configured, falls back to GetById.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cacheExpiration">Optional cache expiration time.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The cached or freshly retrieved entity.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetByIdWithCacheAsync(System.Int64,System.Nullable{System.TimeSpan},System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by long ID with caching support.
+            If cache service is not configured, falls back to GetById.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cacheExpiration">Optional cache expiration time.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The cached or freshly retrieved entity.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetAllWithCacheAsync(System.Nullable{System.TimeSpan},System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities with caching support.
+            If cache service is not configured, falls back to GetAllAsync.
+            </summary>
+            <param name="cacheExpiration">Optional cache expiration time.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The cached or freshly retrieved list of entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.InvalidateCacheAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Invalidates cache entries matching the specified pattern.
+            </summary>
+            <param name="pattern">The pattern to match cache keys (default: "*" for all).</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.Find(System.Nullable{System.Int32})">
+            <summary>
+            Finds an entity by its integer ID.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <returns>The found entity.</returns>
+            <exception cref="T:Repo.Repository.Exceptions.EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.Find(System.Nullable{System.Int64})">
+            <summary>
+            Finds an entity by its long ID (converted to int).
+            </summary>
+            <param name="id">The entity ID.</param>
+            <returns>The found entity.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when id is null.</exception>
+            <exception cref="T:Repo.Repository.Exceptions.EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetAll(System.Boolean)">
+            <summary>
+            Gets all entities with optional no-tracking.
+            </summary>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <returns>A list of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetAll(System.Int32,System.Boolean)">
+            <summary>
+            Gets all entities with optional no-tracking (overload with unused id parameter for compatibility).
+            </summary>
+            <param name="id">Unused parameter for API compatibility.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <returns>A list of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.Add(`0,System.Boolean)">
+            <summary>
+            Adds a new entity to the context.
+            </summary>
+            <param name="entity">The entity to add.</param>
+            <param name="persist">If true, saves changes immediately.</param>
+            <returns>The number of affected rows if persisted, otherwise 0.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.Update(`0,System.Boolean)">
+            <summary>
+            Updates an existing entity in the context.
+            </summary>
+            <param name="entity">The entity to update.</param>
+            <param name="persist">If true, saves changes immediately.</param>
+            <returns>The number of affected rows if persisted, otherwise 0.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.Delete(`0,System.Boolean)">
+            <summary>
+            Deletes an entity from the context.
+            </summary>
+            <param name="entity">The entity to delete.</param>
+            <param name="persist">If true, saves changes immediately.</param>
+            <returns>The number of affected rows if persisted, otherwise 0.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.Save">
+            <summary>
+            Saves all changes made in the context to the database.
+            </summary>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.SaveAsync(System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously saves all changes made in the context to the database.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetAllAsync(System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities asynchronously with optional no-tracking.
+            </summary>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A list of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetAllAsync(System.Int32,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities asynchronously with optional no-tracking (overload with unused id parameter).
+            </summary>
+            <param name="id">Unused parameter for API compatibility.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A list of all entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetById(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by its integer ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The found entity.</returns>
+            <exception cref="T:Repo.Repository.Exceptions.EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetById(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Gets an entity by its long ID asynchronously (converted to int).
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The found entity.</returns>
+            <exception cref="T:Repo.Repository.Exceptions.EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.Insert(`0,System.Threading.CancellationToken)">
+            <summary>
+            Inserts a new entity asynchronously.
+            </summary>
+            <param name="entity">The entity to insert.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The inserted entity.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.UpdateAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Updates an entity asynchronously.
+            </summary>
+            <param name="entity">The entity to update.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The updated entity.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.DeleteAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Deletes an entity by its integer ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <exception cref="T:Repo.Repository.Exceptions.EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.DeleteAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Deletes an entity by its long ID asynchronously.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <exception cref="T:Repo.Repository.Exceptions.EntityNotFoundException">Thrown when entity is not found.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetPagedAsync(Repo.Repository.Models.PagedRequest,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets a paginated list of entities with optional search and sorting.
+            </summary>
+            <param name="request">Pagination request parameters.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A paged result containing entities and metadata.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetPagedAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},Repo.Repository.Models.PagedRequest,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets a paginated list of entities matching the specified filter expression.
+            </summary>
+            <param name="filter">The filter expression.</param>
+            <param name="request">Pagination request parameters.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A paged result containing filtered entities and metadata.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.ApplySearchFilter(System.Linq.IQueryable{`0},System.String)">
+            <summary>
+            Applies a search filter to the query based on the search term.
+            </summary>
+            <param name="query">The source query.</param>
+            <param name="searchTerm">The search term.</param>
+            <returns>The filtered query.</returns>
+            <exception cref="T:System.NotImplementedException">Always thrown as this method requires implementation.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.FindAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Finds all entities matching the specified predicate.
+            </summary>
+            <param name="predicate">The filter expression.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A list of matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.FindAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken,System.Linq.Expressions.Expression{System.Func{`0,System.Object}}[])">
+            <summary>
+            Finds all entities matching the specified predicate with eager loading of related entities.
+            </summary>
+            <param name="predicate">The filter expression.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="includes">Navigation properties to include.</param>
+            <returns>A list of matching entities with included relations.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.FirstOrDefaultAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Gets the first entity matching the specified predicate, or null if not found.
+            </summary>
+            <param name="predicate">The filter expression.</param>
+            <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The first matching entity, or null.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.AnyAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Checks if any entity matches the specified predicate.
+            </summary>
+            <param name="predicate">The filter expression.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>True if any entity matches; otherwise, false.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Counts entities matching the specified predicate.
+            </summary>
+            <param name="predicate">The filter expression.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The count of matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.SoftDeleteAsync(System.Int32,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Soft deletes an entity by its integer ID.
+            If entity doesn't implement ISoftDelete, performs hard delete.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="deletedBy">Optional identifier of who performed the deletion.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.SoftDeleteAsync(System.Int64,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Soft deletes an entity by its long ID.
+            If entity doesn't implement ISoftDelete, performs hard delete.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="deletedBy">Optional identifier of who performed the deletion.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.SoftDeleteAsync(`0,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Soft deletes an entity.
+            If entity doesn't implement ISoftDelete, performs hard delete.
+            </summary>
+            <param name="entity">The entity to soft delete.</param>
+            <param name="deletedBy">Optional identifier of who performed the deletion.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetAllIncludingDeletedAsync(System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities including soft-deleted ones.
+            For entities not implementing ISoftDelete, behaves like GetAllAsync.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A list of all entities including soft-deleted.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.RestoreAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Restores a soft-deleted entity by its integer ID.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows (0 if entity doesn't support soft delete).</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.RestoreAsync(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            Restores a soft-deleted entity by its long ID.
+            </summary>
+            <param name="id">The entity ID.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The number of affected rows (0 if entity doesn't support soft delete).</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetBySpecAsync(Repo.Repository.Specifications.ISpecification{`0},System.Threading.CancellationToken)">
+            <summary>
+            Gets a single entity matching the specified specification.
+            </summary>
+            <param name="spec">The specification to apply.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The matching entity, or null if not found.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetAllBySpecAsync(Repo.Repository.Specifications.ISpecification{`0},System.Threading.CancellationToken)">
+            <summary>
+            Gets all entities matching the specified specification.
+            </summary>
+            <param name="spec">The specification to apply.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A list of matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.GetPagedBySpecAsync(Repo.Repository.Specifications.ISpecification{`0},Repo.Repository.Models.PagedRequest,System.Threading.CancellationToken)">
+            <summary>
+            Gets a paginated list of entities matching the specified specification.
+            </summary>
+            <param name="spec">The specification to apply.</param>
+            <param name="request">Pagination request parameters.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A paged result containing matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.CountBySpecAsync(Repo.Repository.Specifications.ISpecification{`0},System.Threading.CancellationToken)">
+            <summary>
+            Counts entities matching the specified specification.
+            </summary>
+            <param name="spec">The specification to apply.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>The count of matching entities.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.ValidateStoredProcedureName(System.String)">
+            <summary>
+            Validates that a stored procedure or function name is allowed by the whitelist.
+            If no whitelist is configured, validation passes for backward compatibility.
+            </summary>
+            <param name="name">The name to validate.</param>
+            <exception cref="T:Repo.Repository.Exceptions.SecurityException">Thrown when the name is not in the whitelist and validation is required.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.ExecuteStoredProcedureAsync``1(System.String,System.Threading.CancellationToken,System.Object[])">
+            <summary>
+            Executes a stored procedure and returns the results as entities.
+            </summary>
+            <typeparam name="TResult">The type of the result entities.</typeparam>
+            <param name="storedProcedure">The stored procedure name or SQL.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="parameters">Parameters for the stored procedure.</param>
+            <returns>A list of entities returned by the stored procedure.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when stored procedure name is empty.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.ExecuteStoredProcedureNonQueryAsync(System.String,System.Threading.CancellationToken,System.Object[])">
+            <summary>
+            Executes a stored procedure without returning results (non-query).
+            </summary>
+            <param name="storedProcedure">The stored procedure name or SQL.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <param name="parameters">Parameters for the stored procedure.</param>
+            <returns>The number of affected rows.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when stored procedure name is empty.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.ExecuteScalarFunctionAsync``1(System.String,System.Object[])">
+            <summary>
+            Executes a scalar-valued function and returns the result.
+            </summary>
+            <typeparam name="TResult">The return type of the function.</typeparam>
+            <param name="functionName">The function name.</param>
+            <param name="parameters">Parameters for the function.</param>
+            <returns>The scalar result.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when function name is empty.</exception>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.ExecuteTableValuedFunctionAsync``1(System.String,System.Object[])">
+            <summary>
+            Executes a table-valued function and returns the results as entities.
+            </summary>
+            <typeparam name="TResult">The type of the result entities.</typeparam>
+            <param name="functionName">The function name.</param>
+            <param name="parameters">Parameters for the function.</param>
+            <returns>A list of entities returned by the function.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when function name is empty.</exception>
+        </member>
+        <member name="T:Repo.Repository.Base.RepoBaseEnhanced`2">
+            <summary>
+            [OBSOLETE] This class has been consolidated into RepoBase. 
+            Use <see cref="T:Repo.Repository.Base.RepoBase`2"/> instead.
+            This wrapper is provided for backward compatibility and will be removed in a future version.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.RepoOptions">
+            <summary>
+            Configuration options for the repository.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Base.RepoOptions.EnableCompiledQueries">
+            <summary>
+            Gets or sets a value indicating whether compiled queries are enabled.
+            Default is false for backward compatibility.
+            </summary>
+            <remarks>
+            Compiled queries provide 20-30% performance improvement for frequently used operations
+            like GetById, GetAllAsync, and CountAsync. However, they use additional memory.
+            Enable this only when you have identified performance bottlenecks.
+            </remarks>
+        </member>
+        <member name="P:Repo.Repository.Base.RepoOptions.LogCompiledQueryUsage">
+            <summary>
+            Gets or sets a value indicating whether to log when compiled queries are used.
+            </summary>
+            <remarks>
+            Useful for debugging and monitoring compiled query usage in development environments.
+            </remarks>
+        </member>
+        <member name="T:Repo.Repository.Exceptions.EntityNotFoundException">
+            <summary>
+            Exception thrown when an entity is not found in the repository.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Exceptions.RepositoryException">
+            <summary>
+            Base exception for all repository-related errors.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Exceptions.SecurityException">
+            <summary>
+            Exception thrown when a security validation fails, such as when a stored procedure
+            or function is not in the whitelist.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Exceptions.SecurityException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Exceptions.SecurityException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+        </member>
+        <member name="M:Repo.Repository.Exceptions.SecurityException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Exceptions.SecurityException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+            <param name="innerException">The inner exception.</param>
+        </member>
+        <member name="M:Repo.Repository.Exceptions.SecurityException.ProcedureNotWhitelisted(System.String)">
+            <summary>
+            Creates a SecurityException for a non-whitelisted stored procedure or function.
+            </summary>
+            <param name="procedureName">The name of the procedure that was not whitelisted.</param>
+            <returns>A new SecurityException with a descriptive message.</returns>
+        </member>
+        <member name="T:Repo.Repository.Extensions.DatabaseFunctionExtensions">
+            <summary>
+            Extension methods for database function execution.
+            These methods provide first-class support for scalar and table-valued database functions.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Extensions.DatabaseFunctionExtensions.ExecuteScalarFunctionAsync``2(Repo.Repository.Base.IRepo{``0},System.String,System.Object[])">
+            <summary>
+            Executes a scalar database function and returns the result.
+            </summary>
+            <typeparam name="T">The entity type of the repository.</typeparam>
+            <typeparam name="TResult">The return type of the scalar function.</typeparam>
+            <param name="repo">The repository instance.</param>
+            <param name="functionName">The name of the database function.</param>
+            <param name="parameters">Parameters to pass to the function.</param>
+            <returns>The scalar result from the function.</returns>
+        </member>
+        <member name="M:Repo.Repository.Extensions.DatabaseFunctionExtensions.ExecuteTableValuedFunctionAsync``2(Repo.Repository.Base.IRepo{``0},System.String,System.Object[])">
+            <summary>
+            Executes a table-valued database function and returns the results.
+            </summary>
+            <typeparam name="T">The entity type of the repository.</typeparam>
+            <typeparam name="TResult">The entity type returned by the function.</typeparam>
+            <param name="repo">The repository instance.</param>
+            <param name="functionName">The name of the database function.</param>
+            <param name="parameters">Parameters to pass to the function.</param>
+            <returns>An enumerable of results from the table-valued function.</returns>
+        </member>
+        <member name="M:Repo.Repository.Extensions.DatabaseFunctionExtensions.ExecuteAggregateFunctionAsync``2(Repo.Repository.Base.IRepo{``0},System.String,System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            Executes a built-in or user-defined aggregate function.
+            </summary>
+            <typeparam name="T">The entity type of the repository.</typeparam>
+            <typeparam name="TResult">The return type of the aggregate.</typeparam>
+            <param name="repo">The repository instance.</param>
+            <param name="aggregateFunction">The aggregate function name (e.g., COUNT, SUM, AVG, MAX, MIN).</param>
+            <param name="columnName">The column to aggregate.</param>
+            <param name="predicate">Optional filter condition.</param>
+            <returns>The aggregated value.</returns>
+        </member>
+        <member name="M:Repo.Repository.Extensions.DatabaseFunctionExtensions.ExecuteWindowFunctionAsync``2(Repo.Repository.Base.IRepo{``0},System.String,System.String[],System.String[])">
+            <summary>
+            Executes a window function (ROW_NUMBER, RANK, DENSE_RANK, etc.) over a result set.
+            </summary>
+            <typeparam name="T">The entity type of the repository.</typeparam>
+            <typeparam name="TResult">The entity type with window function results.</typeparam>
+            <param name="repo">The repository instance.</param>
+            <param name="windowFunction">The window function SQL expression.</param>
+            <param name="partitionBy">Columns to partition by.</param>
+            <param name="orderBy">Columns to order by.</param>
+            <returns>Results with window function values.</returns>
+        </member>
+        <member name="T:Repo.Repository.Extensions.RetryServiceExtensions">
+            <summary>
+            Extension methods for registering retry policies in the dependency injection container.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Extensions.RetryServiceExtensions.AddRepositoryRetryPolicy(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{Repo.Repository.Retry.RetryPolicyOptions})">
+            <summary>
+            Adds repository retry policy services to the dependency injection container.
+            
+            Configuration Example:
+            <code>
+            services.AddRepositoryRetryPolicy(options =>
+            {
+                options.MaxRetryAttempts = 5;
+                options.InitialDelay = TimeSpan.FromMilliseconds(100);
+                options.MaxDelay = TimeSpan.FromSeconds(60);
+                options.UseExponentialBackoff = true;
+                options.UseJitter = true;
+                options.EnableRetry = true;
+            });
+            </code>
+            
+            To disable retry globally:
+            <code>
+            services.AddRepositoryRetryPolicy(options =>
+            {
+                options.EnableRetry = false;
+            });
+            </code>
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configure">Optional configuration action for retry policy options.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="M:Repo.Repository.Extensions.RetryServiceExtensions.AddRepositoryRetryPolicy(Microsoft.Extensions.DependencyInjection.IServiceCollection,Repo.Repository.Retry.RetryPolicyOptions)">
+            <summary>
+            Adds repository retry policy services with explicit options instance.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="options">The retry policy options instance.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:Repo.Repository.Models.PagedResult`1">
+            <summary>
+            Represents a paginated result set.
+            </summary>
+            <typeparam name="T">The type of items in the result.</typeparam>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.Data">
+            <summary>
+            The paginated data items. This is the primary property.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.Items">
+            <summary>
+            [OBSOLETE] Use <see cref="P:Repo.Repository.Models.PagedResult`1.Data"/> instead. This property is provided for backward compatibility.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.Page">
+            <summary>
+            The current page number (1-based). This is the primary property.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.PageNumber">
+            <summary>
+            [OBSOLETE] Use <see cref="P:Repo.Repository.Models.PagedResult`1.Page"/> instead. This property is provided for backward compatibility.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.PageSize">
+            <summary>
+            The number of items per page.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.TotalPages">
+            <summary>
+            The total number of pages calculated from TotalCount and PageSize.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.HasPreviousPage">
+            <summary>
+            Gets a value indicating whether there is a previous page.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.HasNextPage">
+            <summary>
+            Gets a value indicating whether there is a next page.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Models.PagedResult`1.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Models.PagedResult`1"/> class.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Models.PagedResult`1.#ctor(System.Collections.Generic.IEnumerable{`0},System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Models.PagedResult`1"/> class with the specified data.
+            </summary>
+            <param name="items">The paginated data items.</param>
+            <param name="totalCount">The total number of items across all pages.</param>
+            <param name="pageNumber">The current page number (1-based).</param>
+            <param name="pageSize">The number of items per page.</param>
+        </member>
+        <member name="T:Repo.Repository.Models.PagedRequest">
+            <summary>
+            Represents a request for paginated data.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedRequest.PageNumber">
+            <summary>
+            The page number to retrieve (1-based). Default is 1.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedRequest.PageSize">
+            <summary>
+            The number of items per page. Default is 10.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedRequest.SortBy">
+            <summary>
+            The property name to sort by. Null if no sorting is required.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedRequest.IsAscending">
+            <summary>
+            Whether to sort in ascending order. Default is true.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedRequest.SearchTerm">
+            <summary>
+            A search term to filter results. Null if no search is required.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedRequest.Filters">
+            <summary>
+            Additional filters as key-value pairs. Null if no additional filters are required.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Retry.DefaultRetryPolicy">
+            <summary>
+            Default implementation of retry policy with exponential backoff and jitter.
+            
+            This policy handles transient database faults including:
+            - SQL Server timeout errors (-2)
+            - Connection failures (53, 258)
+            - Login failures (4060, 18456, 18452, 18450)
+            - Azure SQL transient errors (40197, 40501, 40613)
+            - General timeout exceptions
+            
+            IMPORTANT: This policy should ONLY be used for safe operations (reads).
+            Write operations (Insert, Update, Delete) should NOT be retried unless they are idempotent.
+            </summary>
+        </member>
+        <member name="F:Repo.Repository.Retry.DefaultRetryPolicy.TransientSqlErrorNumbers">
+            <summary>
+            SQL Server transient error numbers based on Microsoft documentation.
+            Reference: https://learn.microsoft.com/en-us/azure/azure-sql/database/troubleshoot-common-errors-issues
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Retry.DefaultRetryPolicy.#ctor(Microsoft.Extensions.Options.IOptions{Repo.Repository.Retry.RetryPolicyOptions},Microsoft.Extensions.Logging.ILogger{Repo.Repository.Retry.DefaultRetryPolicy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Retry.DefaultRetryPolicy"/> class.
+            </summary>
+            <param name="options">The retry policy options.</param>
+            <param name="logger">Optional logger for retry attempts.</param>
+        </member>
+        <member name="M:Repo.Repository.Retry.DefaultRetryPolicy.#ctor(Repo.Repository.Retry.RetryPolicyOptions,Microsoft.Extensions.Logging.ILogger{Repo.Repository.Retry.DefaultRetryPolicy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Retry.DefaultRetryPolicy"/> class with explicit options.
+            </summary>
+            <param name="options">The retry policy options.</param>
+            <param name="logger">Optional logger for retry attempts.</param>
+        </member>
+        <member name="M:Repo.Repository.Retry.DefaultRetryPolicy.ExecuteAsync``1(System.Func{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Repo.Repository.Retry.DefaultRetryPolicy.ExecuteAsync(System.Func{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Repo.Repository.Retry.DefaultRetryPolicy.IsTransientException(System.Exception)">
+            <summary>
+            Determines whether an exception is transient and should be retried.
+            </summary>
+            <param name="ex">The exception to check.</param>
+            <returns>True if the exception is transient; otherwise, false.</returns>
+        </member>
+        <member name="M:Repo.Repository.Retry.DefaultRetryPolicy.IsTransientSqlError(Microsoft.Data.SqlClient.SqlException)">
+            <summary>
+            Determines whether a SQL exception is transient.
+            </summary>
+            <param name="ex">The SQL exception to check.</param>
+            <returns>True if the SQL error is transient; otherwise, false.</returns>
+        </member>
+        <member name="M:Repo.Repository.Retry.DefaultRetryPolicy.CalculateDelay(System.Int32)">
+            <summary>
+            Calculates the delay for the next retry attempt using exponential backoff with optional jitter.
+            </summary>
+            <param name="attempt">The current attempt number (0-based).</param>
+            <returns>The delay to wait before the next retry.</returns>
+        </member>
+        <member name="T:Repo.Repository.Retry.IRetryPolicy">
+            <summary>
+            Defines a retry policy for transient fault handling.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Retry.IRetryPolicy.ExecuteAsync``1(System.Func{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <summary>
+            Executes an operation with retry logic.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Retry.IRetryPolicy.ExecuteAsync(System.Func{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Executes an operation with retry logic.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Retry.RetryPolicyOptions">
+            <summary>
+            Configuration options for retry policies.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Retry.RetryPolicyOptions.MaxRetryAttempts">
+            <summary>
+            Maximum number of retry attempts. Default: 3
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Retry.RetryPolicyOptions.InitialDelay">
+            <summary>
+            Initial delay before first retry. Default: 200ms
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Retry.RetryPolicyOptions.MaxDelay">
+            <summary>
+            Maximum delay cap for exponential backoff. Default: 30 seconds
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Retry.RetryPolicyOptions.UseExponentialBackoff">
+            <summary>
+            Whether to use exponential backoff. Default: true
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Retry.RetryPolicyOptions.UseJitter">
+            <summary>
+            Whether to add jitter to delays (recommended for distributed systems). Default: true
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Retry.RetryPolicyOptions.EnableRetry">
+            <summary>
+            Enable/disable retry policy. Default: true
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Security.DefaultStoredProcedureWhitelist">
+            <summary>
+            Default implementation of <see cref="T:Repo.Repository.Security.IStoredProcedureWhitelist"/>.
+            Validates stored procedure and function names against a configured whitelist.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Security.DefaultStoredProcedureWhitelist.#ctor(Microsoft.Extensions.Options.IOptions{Repo.Repository.Security.StoredProcedureOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Security.DefaultStoredProcedureWhitelist"/> class.
+            </summary>
+            <param name="options">The options containing the whitelist configuration.</param>
+        </member>
+        <member name="M:Repo.Repository.Security.DefaultStoredProcedureWhitelist.IsAllowed(System.String)">
+            <summary>
+            Validates if the specified stored procedure or function name is allowed.
+            When whitelist is disabled (RequireWhitelist = false), all names are allowed.
+            When whitelist is empty and disabled, all names are allowed for backward compatibility.
+            </summary>
+            <param name="name">The name of the stored procedure or function to validate.</param>
+            <returns>True if the name is whitelisted or if whitelist validation is disabled; otherwise, false.</returns>
+        </member>
+        <member name="M:Repo.Repository.Security.DefaultStoredProcedureWhitelist.GetWhitelistedNames">
+            <summary>
+            Gets all whitelisted stored procedure and function names.
+            </summary>
+            <returns>An enumerable collection of whitelisted names.</returns>
+        </member>
+        <member name="M:Repo.Repository.Security.DefaultStoredProcedureWhitelist.ExtractProcedureName(System.String)">
+            <summary>
+            Extracts the actual procedure name from a SQL command string.
+            Handles formats like "EXEC sp_name @param" or "sp_name".
+            </summary>
+            <param name="sql">The SQL command string.</param>
+            <returns>The extracted procedure name.</returns>
+        </member>
+        <member name="T:Repo.Repository.Security.IStoredProcedureWhitelist">
+            <summary>
+            Defines the contract for validating stored procedure and function names against a whitelist.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Security.IStoredProcedureWhitelist.IsAllowed(System.String)">
+            <summary>
+            Validates if the specified stored procedure or function name is allowed.
+            </summary>
+            <param name="name">The name of the stored procedure or function to validate.</param>
+            <returns>True if the name is whitelisted; otherwise, false.</returns>
+        </member>
+        <member name="M:Repo.Repository.Security.IStoredProcedureWhitelist.GetWhitelistedNames">
+            <summary>
+            Gets all whitelisted stored procedure and function names.
+            </summary>
+            <returns>An enumerable collection of whitelisted names.</returns>
+        </member>
+        <member name="T:Repo.Repository.Security.StoredProcedureOptions">
+            <summary>
+            Configuration options for stored procedure and function whitelist validation.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Security.StoredProcedureOptions.RequireWhitelist">
+            <summary>
+            Gets or sets a value indicating whether whitelist validation is required.
+            When set to false (default), all stored procedures and functions are allowed for backward compatibility.
+            When set to true, only whitelisted procedures and functions are allowed.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Security.StoredProcedureOptions.WhitelistedProcedures">
+            <summary>
+            Gets or sets the list of whitelisted stored procedure and function names.
+            Names are case-insensitive.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Security.StoredProcedureOptions.ThrowOnValidationFailure">
+            <summary>
+            Gets or sets a value indicating whether to throw a SecurityException when validation fails.
+            When set to true, a SecurityException is thrown for non-whitelisted procedures.
+            When set to false, the validation passes without exception (for backward compatibility).
+            Default is true when RequireWhitelist is true.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Security.StoredProcedureOptions.AddWhitelistedProcedure(System.String)">
+            <summary>
+            Adds a stored procedure or function name to the whitelist.
+            </summary>
+            <param name="name">The name to add.</param>
+            <returns>The current options instance for method chaining.</returns>
+        </member>
+        <member name="M:Repo.Repository.Security.StoredProcedureOptions.AddWhitelistedProcedures(System.String[])">
+            <summary>
+            Adds multiple stored procedure or function names to the whitelist.
+            </summary>
+            <param name="names">The names to add.</param>
+            <returns>The current options instance for method chaining.</returns>
+        </member>
+        <member name="T:Repo.Repository.Services.CacheConfigurationService">
+            <summary>
+            Cache configuration service that allows choosing between Redis and MemoryCache
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Configures the cache service based on Redis availability
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddMemoryCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Configures the cache service forcing the use of MemoryCache
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddRedisCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
+            <summary>
+            Configures the cache service forcing the use of Redis
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.HighPerformanceConfigService">
+            <summary>
+            Configuration service for optimizing database performance
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.ConfigureDbContext``1(``0)">
+            <summary>
+            Configures DbContext for high performance
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.ConfigureSqlConnection(Microsoft.Data.SqlClient.SqlConnection)">
+            <summary>
+            Configures SQL Server connection for high performance
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetBulkOperationConfig">
+            <summary>
+            Gets optimized configuration for bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetConcurrencyConfig">
+            <summary>
+            Gets concurrency configuration
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetCacheConfig">
+            <summary>
+            Gets cache configuration
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetMonitoringConfig">
+            <summary>
+            Gets monitoring configuration
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.BulkOperationConfig">
+            <summary>
+            Configuration for bulk operations
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.ConcurrencyConfig">
+            <summary>
+            Concurrency configuration
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.CacheConfig">
+            <summary>
+            Cache configuration
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.MonitoringConfig">
+            <summary>
+            Monitoring configuration
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Specifications.ISpecification`1">
+            <summary>
+            Defines a specification pattern for querying entities with filtering, includes, ordering, and paging.
+            </summary>
+            <typeparam name="T">The entity type.</typeparam>
+            <remarks>
+            The Specification pattern encapsulates query criteria and allows for reusable, composable queries.
+            Use with IRepo methods like GetBySpecAsync, GetAllBySpecAsync, and GetPagedBySpecAsync.
+            </remarks>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.Criteria">
+            <summary>
+            Gets the filter criteria expression.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.Includes">
+            <summary>
+            Gets the list of include expressions for related entities.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.IncludeStrings">
+            <summary>
+            Gets the list of include strings for related entities (supports nested includes).
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.OrderBy">
+            <summary>
+            Gets the ascending order expression.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.OrderByDescending">
+            <summary>
+            Gets the descending order expression.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.Take">
+            <summary>
+            Gets the number of items to take (for paging).
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.Skip">
+            <summary>
+            Gets the number of items to skip (for paging).
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.IsPagingEnabled">
+            <summary>
+            Gets a value indicating whether paging is enabled.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.ISpecification`1.IsTrackingEnabled">
+            <summary>
+            Gets or sets a value indicating whether change tracking is enabled.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Specifications.BaseSpecification`1">
+            <summary>
+            Base implementation of the <see cref="T:Repo.Repository.Specifications.ISpecification`1"/> interface.
+            </summary>
+            <typeparam name="T">The entity type.</typeparam>
+            <remarks>
+            Inherit from this class to create custom specifications. Use the protected methods to configure
+            the specification with criteria, includes, ordering, and paging.
+            </remarks>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.Criteria">
+            <summary>
+            Gets the filter criteria expression.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.Includes">
+            <summary>
+            Gets the list of include expressions for related entities.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.IncludeStrings">
+            <summary>
+            Gets the list of include strings for related entities (supports nested includes).
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.OrderBy">
+            <summary>
+            Gets the ascending order expression.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.OrderByDescending">
+            <summary>
+            Gets the descending order expression.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.Take">
+            <summary>
+            Gets the number of items to take (for paging).
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.Skip">
+            <summary>
+            Gets the number of items to skip (for paging).
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.IsPagingEnabled">
+            <summary>
+            Gets a value indicating whether paging is enabled.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Specifications.BaseSpecification`1.IsTrackingEnabled">
+            <summary>
+            Gets or sets a value indicating whether change tracking is enabled. Default is true.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Specifications.BaseSpecification`1.AddCriteria(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Adds filter criteria to the specification.
+            </summary>
+            <param name="criteriaExpression">The filter expression.</param>
+        </member>
+        <member name="M:Repo.Repository.Specifications.BaseSpecification`1.AddInclude(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            Adds an include expression for a related entity.
+            </summary>
+            <param name="includeExpression">Expression specifying the related entity to include.</param>
+        </member>
+        <member name="M:Repo.Repository.Specifications.BaseSpecification`1.AddInclude(System.String)">
+            <summary>
+            Adds an include string for a related entity (supports nested includes like "Orders.Items").
+            </summary>
+            <param name="includeString">The include path.</param>
+        </member>
+        <member name="M:Repo.Repository.Specifications.BaseSpecification`1.AddOrderBy(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            Adds ascending order to the specification.
+            </summary>
+            <param name="orderByExpression">Expression specifying the property to order by.</param>
+        </member>
+        <member name="M:Repo.Repository.Specifications.BaseSpecification`1.AddOrderByDescending(System.Linq.Expressions.Expression{System.Func{`0,System.Object}})">
+            <summary>
+            Adds descending order to the specification.
+            </summary>
+            <param name="orderByDescExpression">Expression specifying the property to order by descending.</param>
+        </member>
+        <member name="M:Repo.Repository.Specifications.BaseSpecification`1.ApplyPaging(System.Int32,System.Int32)">
+            <summary>
+            Applies paging to the specification.
+            </summary>
+            <param name="skip">The number of items to skip.</param>
+            <param name="take">The number of items to take.</param>
+        </member>
+        <member name="T:Repo.Repository.UnitOfWork.IUnitOfWork">
+            <summary>
+            Unit of Work - Central transaction orchestrator for the repository pattern.
+            
+            This interface provides the PRIMARY entry point for transaction management.
+            All transaction operations should be coordinated through UnitOfWork, not individual repositories.
+            
+            Usage Pattern:
+                await unitOfWork.BeginTransactionAsync();
+                try {
+                    // Perform operations via repositories obtained from unitOfWork.Repository&lt;T&gt;()
+                    await unitOfWork.CommitTransactionAsync();
+                } catch {
+                    await unitOfWork.RollbackTransactionAsync();
+                    throw;
+                }
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.Repository``1">
+            <summary>
+            Gets a repository for the specified entity type.
+            Repositories obtained through this method participate in the UnitOfWork's transaction scope.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.SaveChangesAsync">
+            <summary>
+            Saves all pending changes to the database.
+            When inside a transaction, changes are persisted but not committed until CommitTransactionAsync is called.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.BeginTransactionAsync">
+            <summary>
+            Begins a new database transaction with default isolation level.
+            This is the PRIMARY method for starting transactions - use UnitOfWork, not repository methods.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.BeginTransactionAsync(System.Data.IsolationLevel)">
+            <summary>
+            Begins a new database transaction with specified isolation level.
+            Use this overload when you need explicit control over transaction isolation behavior.
+            </summary>
+            <param name="isolationLevel">The isolation level for the transaction (e.g., ReadCommitted, Serializable, Snapshot).</param>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.CommitTransactionAsync">
+            <summary>
+            Commits the current transaction.
+            All changes made since BeginTransactionAsync are permanently saved.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.RollbackTransactionAsync">
+            <summary>
+            Rolls back the current transaction.
+            All changes made since BeginTransactionAsync are discarded.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.UnitOfWork.IUnitOfWork.CurrentTransaction">
+            <summary>
+            Gets the current database transaction if one is active.
+            Returns null if no transaction is in progress.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.UnitOfWork.IUnitOfWork.HasActiveTransaction">
+            <summary>
+            Returns true if a transaction is currently active.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.UnitOfWork.UnitOfWork`1.CurrentTransaction">
+            <summary>
+            Gets the current database transaction if one is active.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.UnitOfWork.UnitOfWork`1.HasActiveTransaction">
+            <summary>
+            Returns true if a transaction is currently active.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.Repository``1">
+            <summary>
+            Gets a repository for the specified entity type.
+            Repositories participate in the UnitOfWork's transaction scope automatically.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.SaveChangesAsync">
+            <summary>
+            Saves all pending changes to the database.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.BeginTransactionAsync">
+            <summary>
+            Begins a new database transaction.
+            This is the PRIMARY method for starting transactions.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.BeginTransactionAsync(System.Data.IsolationLevel)">
+            <summary>
+            Begins a new database transaction with specified isolation level.
+            </summary>
+            <param name="isolationLevel">The isolation level for the transaction.</param>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.CommitTransactionAsync">
+            <summary>
+            Commits the current transaction.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.RollbackTransactionAsync">
+            <summary>
+            Rolls back the current transaction.
+            </summary>
+        </member>
+    </members>
+</doc>

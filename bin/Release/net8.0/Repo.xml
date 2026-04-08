@@ -1,0 +1,562 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Repo</name>
+    </assembly>
+    <members>
+        <member name="T:Repo.Repository.Base.HighPerformanceRepo`2">
+            <summary>
+            Repositorio optimizado para alto rendimiento - miles de transacciones por segundo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.IHighPerformanceRepo`1">
+            <summary>
+            Interfaz para operaciones de alto rendimiento optimizada para miles de transacciones por segundo
+            </summary>
+            <typeparam name="T">Tipo de entidad</typeparam>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkInsertAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Inserta miles de registros de forma optimizada usando bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkUpdateAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Actualiza miles de registros de forma optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkDeleteAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Elimina miles de registros de forma optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkDeleteAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Elimina registros por predicado usando bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.BulkMergeAsync(System.Collections.Generic.IEnumerable{`0},System.Int32)">
+            <summary>
+            Operación de merge (insert/update) optimizada
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ProcessBatchAsync``1(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Func{System.Collections.Generic.IEnumerable{`0},System.Threading.Tasks.Task{``0}},System.Int32,System.Int32)">
+            <summary>
+            Procesa grandes volúmenes de datos en lotes para evitar problemas de memoria
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ProcessParallelAsync``1(System.Collections.Generic.IEnumerable{`0},System.Func{`0,System.Threading.Tasks.Task{``0}},System.Int32)">
+            <summary>
+            Procesa datos en paralelo con control de concurrencia
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.StreamAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Int32)">
+            <summary>
+            Obtiene datos en streaming para evitar cargar todo en memoria
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.GetPagedOptimizedAsync(Repo.Repository.Models.PagedRequest,System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Obtiene datos paginados optimizados para grandes volúmenes
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteWithMetricsAsync(System.Func{System.Threading.Tasks.Task})">
+            <summary>
+            Ejecuta operación con métricas de rendimiento
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteWithMetricsAsync``1(System.Func{System.Threading.Tasks.Task{``0}})">
+            <summary>
+            Ejecuta operación con métricas de rendimiento y retorna resultado
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ConfigureForHighPerformance(System.Int32,System.Boolean)">
+            <summary>
+            Configura el contexto para operaciones de alto rendimiento
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ClearContextAsync">
+            <summary>
+            Limpia el contexto para liberar memoria
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteInTransactionAsync``1(System.Func{System.Threading.Tasks.Task{``0}},System.Data.IsolationLevel)">
+            <summary>
+            Ejecuta operación en transacción optimizada para grandes volúmenes
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IHighPerformanceRepo`1.ExecuteDistributedTransactionAsync(System.Func{System.Threading.Tasks.Task}[])">
+            <summary>
+            Ejecuta múltiples operaciones en transacción distribuida
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.PerformanceMetrics">
+            <summary>
+            Métricas de rendimiento para monitoreo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Base.IRepo`1">
+            <summary>
+            Repository interface for entity operations.
+            
+            Transaction Management:
+            - Use IUnitOfWork for all transaction orchestration
+            - Repositories obtained via IUnitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.ExecuteScalarFunctionAsync``1(System.String,System.Object[])">
+            <summary>
+            Executes a scalar database function and returns the result.
+            </summary>
+            <typeparam name="TResult">The return type of the scalar function.</typeparam>
+            <param name="functionName">Name of the database function.</param>
+            <param name="parameters">Parameters to pass to the function.</param>
+            <returns>The scalar result.</returns>
+        </member>
+        <member name="M:Repo.Repository.Base.IRepo`1.ExecuteTableValuedFunctionAsync``1(System.String,System.Object[])">
+            <summary>
+            Executes a table-valued database function and returns the results.
+            </summary>
+            <typeparam name="TResult">The entity type returned by the function.</typeparam>
+            <param name="functionName">Name of the database function.</param>
+            <param name="parameters">Parameters to pass to the function.</param>
+            <returns>Enumerable of results from the table-valued function.</returns>
+        </member>
+        <member name="T:Repo.Repository.Base.RepoBase`2">
+            <summary>
+            Base repository implementation for entity operations.
+            
+            Transaction Management:
+            - Use IUnitOfWork for all transaction orchestration
+            - Repositories obtained via unitOfWork.Repository&lt;T&gt;() automatically participate in UnitOfWork transactions
+            
+            Recommended Usage:
+                using var unitOfWork = new UnitOfWork&lt;MyContext&gt;(context, logger);
+                await unitOfWork.BeginTransactionAsync();
+                try {
+                    var repo = unitOfWork.Repository&lt;MyEntity&gt;();
+                    await repo.Insert(entity);
+                    await unitOfWork.CommitTransactionAsync();
+                } catch {
+                    await unitOfWork.RollbackTransactionAsync();
+                    throw;
+                }
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.#ctor(`1,Microsoft.Extensions.Logging.ILogger,Repo.Repository.Interfaces.ICacheService,Repo.Repository.Security.IStoredProcedureWhitelist)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Base.RepoBase`2"/> class.
+            </summary>
+            <param name="context">The database context.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="cacheService">Optional cache service.</param>
+            <param name="whitelist">Optional whitelist for stored procedure validation.</param>
+        </member>
+        <member name="M:Repo.Repository.Base.RepoBase`2.ValidateStoredProcedureName(System.String)">
+            <summary>
+            Validates that a stored procedure or function name is allowed by the whitelist.
+            If no whitelist is configured, validation passes for backward compatibility.
+            </summary>
+            <param name="name">The name to validate.</param>
+            <exception cref="T:Repo.Repository.Exceptions.SecurityException">Thrown when the name is not in the whitelist and validation is required.</exception>
+        </member>
+        <member name="T:Repo.Repository.Base.RepoBaseEnhanced`2">
+            <summary>
+            [OBSOLETE] This class has been consolidated into RepoBase. 
+            Use <see cref="T:Repo.Repository.Base.RepoBase`2"/> instead.
+            This wrapper is provided for backward compatibility and will be removed in a future version.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Exceptions.EntityNotFoundException">
+            <summary>
+            Exception thrown when an entity is not found in the repository.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Exceptions.RepositoryException">
+            <summary>
+            Base exception for all repository-related errors.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Exceptions.SecurityException">
+            <summary>
+            Exception thrown when a security validation fails, such as when a stored procedure
+            or function is not in the whitelist.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Exceptions.SecurityException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Exceptions.SecurityException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+        </member>
+        <member name="M:Repo.Repository.Exceptions.SecurityException.#ctor(System.String,System.Exception)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Exceptions.SecurityException"/> class.
+            </summary>
+            <param name="message">The error message.</param>
+            <param name="innerException">The inner exception.</param>
+        </member>
+        <member name="M:Repo.Repository.Exceptions.SecurityException.ProcedureNotWhitelisted(System.String)">
+            <summary>
+            Creates a SecurityException for a non-whitelisted stored procedure or function.
+            </summary>
+            <param name="procedureName">The name of the procedure that was not whitelisted.</param>
+            <returns>A new SecurityException with a descriptive message.</returns>
+        </member>
+        <member name="T:Repo.Repository.Extensions.DatabaseFunctionExtensions">
+            <summary>
+            Extension methods for database function execution.
+            These methods provide first-class support for scalar and table-valued database functions.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Extensions.DatabaseFunctionExtensions.ExecuteScalarFunctionAsync``2(Repo.Repository.Base.IRepo{``0},System.String,System.Object[])">
+            <summary>
+            Executes a scalar database function and returns the result.
+            </summary>
+            <typeparam name="T">The entity type of the repository.</typeparam>
+            <typeparam name="TResult">The return type of the scalar function.</typeparam>
+            <param name="repo">The repository instance.</param>
+            <param name="functionName">The name of the database function.</param>
+            <param name="parameters">Parameters to pass to the function.</param>
+            <returns>The scalar result from the function.</returns>
+        </member>
+        <member name="M:Repo.Repository.Extensions.DatabaseFunctionExtensions.ExecuteTableValuedFunctionAsync``2(Repo.Repository.Base.IRepo{``0},System.String,System.Object[])">
+            <summary>
+            Executes a table-valued database function and returns the results.
+            </summary>
+            <typeparam name="T">The entity type of the repository.</typeparam>
+            <typeparam name="TResult">The entity type returned by the function.</typeparam>
+            <param name="repo">The repository instance.</param>
+            <param name="functionName">The name of the database function.</param>
+            <param name="parameters">Parameters to pass to the function.</param>
+            <returns>An enumerable of results from the table-valued function.</returns>
+        </member>
+        <member name="M:Repo.Repository.Extensions.DatabaseFunctionExtensions.ExecuteAggregateFunctionAsync``2(Repo.Repository.Base.IRepo{``0},System.String,System.String,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}})">
+            <summary>
+            Executes a built-in or user-defined aggregate function.
+            </summary>
+            <typeparam name="T">The entity type of the repository.</typeparam>
+            <typeparam name="TResult">The return type of the aggregate.</typeparam>
+            <param name="repo">The repository instance.</param>
+            <param name="aggregateFunction">The aggregate function name (e.g., COUNT, SUM, AVG, MAX, MIN).</param>
+            <param name="columnName">The column to aggregate.</param>
+            <param name="predicate">Optional filter condition.</param>
+            <returns>The aggregated value.</returns>
+        </member>
+        <member name="M:Repo.Repository.Extensions.DatabaseFunctionExtensions.ExecuteWindowFunctionAsync``2(Repo.Repository.Base.IRepo{``0},System.String,System.String[],System.String[])">
+            <summary>
+            Executes a window function (ROW_NUMBER, RANK, DENSE_RANK, etc.) over a result set.
+            </summary>
+            <typeparam name="T">The entity type of the repository.</typeparam>
+            <typeparam name="TResult">The entity type with window function results.</typeparam>
+            <param name="repo">The repository instance.</param>
+            <param name="windowFunction">The window function SQL expression.</param>
+            <param name="partitionBy">Columns to partition by.</param>
+            <param name="orderBy">Columns to order by.</param>
+            <returns>Results with window function values.</returns>
+        </member>
+        <member name="T:Repo.Repository.Models.PagedResult`1">
+            <summary>
+            Represents a paginated result set.
+            </summary>
+            <typeparam name="T">The type of items in the result.</typeparam>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.Data">
+            <summary>
+            The paginated data items. This is the primary property.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.Items">
+            <summary>
+            [OBSOLETE] Use <see cref="P:Repo.Repository.Models.PagedResult`1.Data"/> instead. This property is provided for backward compatibility.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.Page">
+            <summary>
+            The current page number (1-based). This is the primary property.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Models.PagedResult`1.PageNumber">
+            <summary>
+            [OBSOLETE] Use <see cref="P:Repo.Repository.Models.PagedResult`1.Page"/> instead. This property is provided for backward compatibility.
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Security.DefaultStoredProcedureWhitelist">
+            <summary>
+            Default implementation of <see cref="T:Repo.Repository.Security.IStoredProcedureWhitelist"/>.
+            Validates stored procedure and function names against a configured whitelist.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Security.DefaultStoredProcedureWhitelist.#ctor(Microsoft.Extensions.Options.IOptions{Repo.Repository.Security.StoredProcedureOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Repo.Repository.Security.DefaultStoredProcedureWhitelist"/> class.
+            </summary>
+            <param name="options">The options containing the whitelist configuration.</param>
+        </member>
+        <member name="M:Repo.Repository.Security.DefaultStoredProcedureWhitelist.IsAllowed(System.String)">
+            <summary>
+            Validates if the specified stored procedure or function name is allowed.
+            When whitelist is disabled (RequireWhitelist = false), all names are allowed.
+            When whitelist is empty and disabled, all names are allowed for backward compatibility.
+            </summary>
+            <param name="name">The name of the stored procedure or function to validate.</param>
+            <returns>True if the name is whitelisted or if whitelist validation is disabled; otherwise, false.</returns>
+        </member>
+        <member name="M:Repo.Repository.Security.DefaultStoredProcedureWhitelist.GetWhitelistedNames">
+            <summary>
+            Gets all whitelisted stored procedure and function names.
+            </summary>
+            <returns>An enumerable collection of whitelisted names.</returns>
+        </member>
+        <member name="M:Repo.Repository.Security.DefaultStoredProcedureWhitelist.ExtractProcedureName(System.String)">
+            <summary>
+            Extracts the actual procedure name from a SQL command string.
+            Handles formats like "EXEC sp_name @param" or "sp_name".
+            </summary>
+            <param name="sql">The SQL command string.</param>
+            <returns>The extracted procedure name.</returns>
+        </member>
+        <member name="T:Repo.Repository.Security.IStoredProcedureWhitelist">
+            <summary>
+            Defines the contract for validating stored procedure and function names against a whitelist.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Security.IStoredProcedureWhitelist.IsAllowed(System.String)">
+            <summary>
+            Validates if the specified stored procedure or function name is allowed.
+            </summary>
+            <param name="name">The name of the stored procedure or function to validate.</param>
+            <returns>True if the name is whitelisted; otherwise, false.</returns>
+        </member>
+        <member name="M:Repo.Repository.Security.IStoredProcedureWhitelist.GetWhitelistedNames">
+            <summary>
+            Gets all whitelisted stored procedure and function names.
+            </summary>
+            <returns>An enumerable collection of whitelisted names.</returns>
+        </member>
+        <member name="T:Repo.Repository.Security.StoredProcedureOptions">
+            <summary>
+            Configuration options for stored procedure and function whitelist validation.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Security.StoredProcedureOptions.RequireWhitelist">
+            <summary>
+            Gets or sets a value indicating whether whitelist validation is required.
+            When set to false (default), all stored procedures and functions are allowed for backward compatibility.
+            When set to true, only whitelisted procedures and functions are allowed.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Security.StoredProcedureOptions.WhitelistedProcedures">
+            <summary>
+            Gets or sets the list of whitelisted stored procedure and function names.
+            Names are case-insensitive.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.Security.StoredProcedureOptions.ThrowOnValidationFailure">
+            <summary>
+            Gets or sets a value indicating whether to throw a SecurityException when validation fails.
+            When set to true, a SecurityException is thrown for non-whitelisted procedures.
+            When set to false, the validation passes without exception (for backward compatibility).
+            Default is true when RequireWhitelist is true.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Security.StoredProcedureOptions.AddWhitelistedProcedure(System.String)">
+            <summary>
+            Adds a stored procedure or function name to the whitelist.
+            </summary>
+            <param name="name">The name to add.</param>
+            <returns>The current options instance for method chaining.</returns>
+        </member>
+        <member name="M:Repo.Repository.Security.StoredProcedureOptions.AddWhitelistedProcedures(System.String[])">
+            <summary>
+            Adds multiple stored procedure or function names to the whitelist.
+            </summary>
+            <param name="names">The names to add.</param>
+            <returns>The current options instance for method chaining.</returns>
+        </member>
+        <member name="T:Repo.Repository.Services.CacheConfigurationService">
+            <summary>
+            Servicio de configuración de caché que permite elegir entre Redis y MemoryCache
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Configura el servicio de caché según la disponibilidad de Redis
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddMemoryCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Configura el servicio de caché forzando el uso de MemoryCache
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.CacheConfigurationService.AddRedisCacheService(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
+            <summary>
+            Configura el servicio de caché forzando el uso de Redis
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.HighPerformanceConfigService">
+            <summary>
+            Servicio de configuración para optimizar el rendimiento de la base de datos
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.ConfigureDbContext``1(``0)">
+            <summary>
+            Configura DbContext para alto rendimiento
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.ConfigureSqlConnection(Microsoft.Data.SqlClient.SqlConnection)">
+            <summary>
+            Configura conexión SQL Server para alto rendimiento
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetBulkOperationConfig">
+            <summary>
+            Obtiene configuración optimizada para bulk operations
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetConcurrencyConfig">
+            <summary>
+            Obtiene configuración de concurrencia
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetCacheConfig">
+            <summary>
+            Obtiene configuración de caché
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.Services.HighPerformanceConfigService.GetMonitoringConfig">
+            <summary>
+            Obtiene configuración de monitoreo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.BulkOperationConfig">
+            <summary>
+            Configuración para operaciones bulk
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.ConcurrencyConfig">
+            <summary>
+            Configuración de concurrencia
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.CacheConfig">
+            <summary>
+            Configuración de caché
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.Services.MonitoringConfig">
+            <summary>
+            Configuración de monitoreo
+            </summary>
+        </member>
+        <member name="T:Repo.Repository.UnitOfWork.IUnitOfWork">
+            <summary>
+            Unit of Work - Central transaction orchestrator for the repository pattern.
+            
+            This interface provides the PRIMARY entry point for transaction management.
+            All transaction operations should be coordinated through UnitOfWork, not individual repositories.
+            
+            Usage Pattern:
+                await unitOfWork.BeginTransactionAsync();
+                try {
+                    // Perform operations via repositories obtained from unitOfWork.Repository&lt;T&gt;()
+                    await unitOfWork.CommitTransactionAsync();
+                } catch {
+                    await unitOfWork.RollbackTransactionAsync();
+                    throw;
+                }
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.Repository``1">
+            <summary>
+            Gets a repository for the specified entity type.
+            Repositories obtained through this method participate in the UnitOfWork's transaction scope.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.SaveChangesAsync">
+            <summary>
+            Saves all pending changes to the database.
+            When inside a transaction, changes are persisted but not committed until CommitTransactionAsync is called.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.BeginTransactionAsync">
+            <summary>
+            Begins a new database transaction with default isolation level.
+            This is the PRIMARY method for starting transactions - use UnitOfWork, not repository methods.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.BeginTransactionAsync(System.Data.IsolationLevel)">
+            <summary>
+            Begins a new database transaction with specified isolation level.
+            Use this overload when you need explicit control over transaction isolation behavior.
+            </summary>
+            <param name="isolationLevel">The isolation level for the transaction (e.g., ReadCommitted, Serializable, Snapshot).</param>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.CommitTransactionAsync">
+            <summary>
+            Commits the current transaction.
+            All changes made since BeginTransactionAsync are permanently saved.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.IUnitOfWork.RollbackTransactionAsync">
+            <summary>
+            Rolls back the current transaction.
+            All changes made since BeginTransactionAsync are discarded.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.UnitOfWork.IUnitOfWork.CurrentTransaction">
+            <summary>
+            Gets the current database transaction if one is active.
+            Returns null if no transaction is in progress.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.UnitOfWork.IUnitOfWork.HasActiveTransaction">
+            <summary>
+            Returns true if a transaction is currently active.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.UnitOfWork.UnitOfWork`1.CurrentTransaction">
+            <summary>
+            Gets the current database transaction if one is active.
+            </summary>
+        </member>
+        <member name="P:Repo.Repository.UnitOfWork.UnitOfWork`1.HasActiveTransaction">
+            <summary>
+            Returns true if a transaction is currently active.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.Repository``1">
+            <summary>
+            Gets a repository for the specified entity type.
+            Repositories participate in the UnitOfWork's transaction scope automatically.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.SaveChangesAsync">
+            <summary>
+            Saves all pending changes to the database.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.BeginTransactionAsync">
+            <summary>
+            Begins a new database transaction.
+            This is the PRIMARY method for starting transactions.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.BeginTransactionAsync(System.Data.IsolationLevel)">
+            <summary>
+            Begins a new database transaction with specified isolation level.
+            </summary>
+            <param name="isolationLevel">The isolation level for the transaction.</param>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.CommitTransactionAsync">
+            <summary>
+            Commits the current transaction.
+            </summary>
+        </member>
+        <member name="M:Repo.Repository.UnitOfWork.UnitOfWork`1.RollbackTransactionAsync">
+            <summary>
+            Rolls back the current transaction.
+            </summary>
+        </member>
+    </members>
+</doc>

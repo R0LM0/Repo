@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 namespace Repo.Repository.Specifications
 {
     /// <summary>
-    /// Defines a specification pattern for querying entities with filtering, includes, ordering, and paging.
+    /// Defines a specification pattern for querying entities with filtering, includes, ordering, paging, and projection.
     /// </summary>
     /// <typeparam name="T">The entity type.</typeparam>
     /// <remarks>
@@ -63,6 +63,19 @@ namespace Repo.Repository.Specifications
         /// to avoid Cartesian explosion. Improves performance for queries with many related entities.
         /// </summary>
         bool UseSplitQuery { get; set; }
+    }
+
+    /// <summary>
+    /// Defines a specification pattern with projection support for transforming entities to DTOs.
+    /// </summary>
+    /// <typeparam name="T">The entity type.</typeparam>
+    /// <typeparam name="TResult">The projected result type.</typeparam>
+    public interface ISpecification<T, TResult> : ISpecification<T>
+    {
+        /// <summary>
+        /// Gets the projection expression to transform entities to the result type.
+        /// </summary>
+        Expression<Func<T, TResult>>? Selector { get; }
     }
 
     /// <summary>
@@ -126,6 +139,17 @@ namespace Repo.Repository.Specifications
         /// to avoid Cartesian explosion. Automatically enabled when more than one include is present.
         /// </summary>
         public bool UseSplitQuery { get; set; }
+
+        /// <summary>
+        /// Sets the projection selector for this specification.
+        /// </summary>
+        /// <typeparam name="TResult">The projected result type.</typeparam>
+        /// <param name="selector">Expression to project entities to the result type.</param>
+        /// <returns>A new specification with projection support.</returns>
+        public ISpecification<T, TResult> Select<TResult>(Expression<Func<T, TResult>> selector)
+        {
+            return new Specification<T, TResult>(this, selector);
+        }
 
         /// <summary>
         /// Adds filter criteria to the specification.

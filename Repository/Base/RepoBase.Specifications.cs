@@ -116,6 +116,55 @@ namespace Repo.Repository.Base
                 throw;
             }
         }
+
+        /// <summary>
+        /// Gets all entities matching the specified specification and projects them to a DTO.
+        /// </summary>
+        /// <typeparam name="TResult">The projected result type.</typeparam>
+        /// <param name="spec">The specification with projection.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A list of projected entities.</returns>
+        public async Task<IEnumerable<TResult>> GetAllBySpecAsync<TResult>(ISpecification<T, TResult> spec, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var query = SpecificationEvaluator<T>.GetQuery(Table.AsQueryable(), spec);
+                return await query.ToListAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en GetAllBySpecAsync<TResult> para {Entity}", typeof(T).Name);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Gets a paginated list of entities matching the specified specification and projects them to a DTO.
+        /// </summary>
+        /// <typeparam name="TResult">The projected result type.</typeparam>
+        /// <param name="spec">The specification with projection.</param>
+        /// <param name="request">Pagination request parameters.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A paged result containing projected entities.</returns>
+        public async Task<PagedResult<TResult>> GetPagedBySpecAsync<TResult>(ISpecification<T, TResult> spec, PagedRequest request, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var query = SpecificationEvaluator<T>.GetQuery(Table.AsQueryable(), spec);
+                var totalCount = await query.CountAsync(cancellationToken);
+                var items = await query
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToListAsync(cancellationToken);
+
+                return new PagedResult<TResult>(items, totalCount, request.PageNumber, request.PageSize);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en GetPagedBySpecAsync<TResult> para {Entity}", typeof(T).Name);
+                throw;
+            }
+        }
         #endregion
     }
 }
