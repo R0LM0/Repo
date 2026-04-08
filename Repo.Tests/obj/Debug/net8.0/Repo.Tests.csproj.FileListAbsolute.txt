@@ -1,0 +1,8 @@
+D:\WORKSPACES\.NET\.NET8\Repo\Repo.Tests\bin\Debug\net8.0\.msCoverageSourceRootsMapping_Repo.Tests
+D:\WORKSPACES\.NET\.NET8\Repo\Repo.Tests\bin\Debug\net8.0\CoverletSourceRootsMapping_Repo.Tests
+D:\WORKSPACES\.NET\.NET8\Repo\Repo.Tests\obj\Debug\net8.0\Repo.Tests.csproj.AssemblyReference.cache
+D:\WORKSPACES\.NET\.NET8\Repo\Repo.Tests\obj\Debug\net8.0\Repo.Tests.GeneratedMSBuildEditorConfig.editorconfig
+D:\WORKSPACES\.NET\.NET8\Repo\Repo.Tests\obj\Debug\net8.0\Repo.Tests.AssemblyInfoInputs.cache
+D:\WORKSPACES\.NET\.NET8\Repo\Repo.Tests\obj\Debug\net8.0\Repo.Tests.AssemblyInfo.cs
+D:\WORKSPACES\.NET\.NET8\Repo\Repo.Tests\obj\Debug\net8.0\Repo.Tests.csproj.CoreCompileInputs.cache
+D:\WORKSPACES\.NET\.NET8\Repo\Repo.Tests\obj\Debug\net8.0\Repo.Tests.sourcelink.json

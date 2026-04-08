@@ -1,0 +1,13 @@
+{
+  "status": "init",
+  "executionArgs": {
+    "projectName": "Repo.Tests",
+    "projectPath": "D:\\WORKSPACES\\.NET\\.NET8\\Repo\\Repo.Tests",
+    "testIds": [],
+    "additionalInstruction": "Create tests for the compiled queries feature. Test:\n1. CompiledRepoBase uses compiled queries when enabled\n2. CompiledRepoBase falls back to standard queries when disabled\n3. GetById works with both int and long\n4. GetAllAsync works with and without tracking\n5. CountAllAsync returns correct count\n6. Options are correctly applied\n7. No breaking changes to existing API",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-p9-XX_BmrWnSjVA47p32azd-KB_t4rmqDclC3-ayi7RRtmidFYRzk4vmWS_y5JM4b-q6K6uZTKklbq_eEhqzcYXnzi12ByHSy6XSCqbJZrTUiQ2DRg4pA3izAJBefZgfVpQ"
+    }
+  }
+}
