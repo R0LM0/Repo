@@ -13,6 +13,8 @@
 //   - DeleteRangeAsync (2 overloads) - Delete multiple entities by entities or predicate
 // -----------------------------------------------------------------------------
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 using System.Threading;
 

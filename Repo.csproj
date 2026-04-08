@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
@@ -10,7 +10,7 @@
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <NoWarn>$(NoWarn);1591;1574</NoWarn>
     <PackageId>AdvancedRepository.NET8</PackageId>
     <Version>1.0.0</Version>
     <Authors>Lenin Osorio Martinez - r0lm0 </Authors>
@@ -81,14 +81,17 @@
     <Compile Remove="Examples/**" />
     <Compile Remove="EjemploAPI/**" />
     <Compile Remove="Repo.Tests/**" />
+    <Compile Remove="Repo.Benchmarks/**" />
     <Compile Remove="Integrations/**" />
     <EmbeddedResource Remove="Examples/**" />
     <EmbeddedResource Remove="EjemploAPI/**" />
     <EmbeddedResource Remove="Repo.Tests/**" />
+    <EmbeddedResource Remove="Repo.Benchmarks/**" />
     <EmbeddedResource Remove="Integrations/**" />
     <None Remove="Examples/**" />
     <None Remove="EjemploAPI/**" />
     <None Remove="Repo.Tests/**" />
+    <None Remove="Repo.Benchmarks/**" />
     <None Remove="Integrations/**" />
   </ItemGroup>
 

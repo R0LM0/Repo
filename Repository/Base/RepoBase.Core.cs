@@ -20,6 +20,7 @@
 // -----------------------------------------------------------------------------
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Repo.Repository.Exceptions;
 using Repo.Repository.Retry;
 using System.Threading;
@@ -208,7 +209,7 @@ namespace Repo.Repository.Base
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The found entity.</returns>
         /// <exception cref="EntityNotFoundException">Thrown when entity is not found.</exception>
-        public async Task<T> GetById(int id, CancellationToken cancellationToken = default)
+        public virtual async Task<T> GetById(int id, CancellationToken cancellationToken = default)
         {
             async Task<T> Operation()
             {
@@ -240,7 +241,7 @@ namespace Repo.Repository.Base
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The found entity.</returns>
         /// <exception cref="EntityNotFoundException">Thrown when entity is not found.</exception>
-        public async Task<T> GetById(long id, CancellationToken cancellationToken = default)
+        public virtual async Task<T> GetById(long id, CancellationToken cancellationToken = default)
         {
             async Task<T> Operation()
             {

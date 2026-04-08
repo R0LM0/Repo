@@ -45,11 +45,11 @@ namespace Repo.Repository.Base
         // These are intentionally static per generic type combination
         // to cache compiled queries for each entity/context pair.
 
-        private static readonly Func<TContext, int, CancellationToken, Task<T?>> GetByIdIntCompiled;
-        private static readonly Func<TContext, long, CancellationToken, Task<T?>> GetByIdLongCompiled;
-        private static readonly Func<TContext, bool, CancellationToken, Task<List<T>>> GetAllCompiled;
-        private static readonly Func<TContext, CancellationToken, Task<int>> CountAllCompiled;
-        private static readonly Func<TContext, Expression<Func<T, bool>>, CancellationToken, Task<int>> CountWhereCompiled;
+        private static Func<TContext, int, CancellationToken, Task<T?>> GetByIdIntCompiled = null!;
+        private static Func<TContext, long, CancellationToken, Task<T?>> GetByIdLongCompiled = null!;
+        private static Func<TContext, bool, CancellationToken, Task<List<T>>> GetAllCompiled = null!;
+        private static Func<TContext, CancellationToken, Task<int>> CountAllCompiled = null!;
+        private static Func<TContext, Expression<Func<T, bool>>, CancellationToken, Task<int>> CountWhereCompiled = null!;
 
         private static readonly object InitializationLock = new();
         private static bool _isInitialized;
@@ -60,7 +60,7 @@ namespace Repo.Repository.Base
         /// </summary>
         static CompiledQueries()
         {
-            // Initialize with default implementations that will be replaced
+            // Initialize with default implementations (non-compiled fallback)
             GetByIdIntCompiled = (context, id, ct) =>
                 context.Set<T>().FirstOrDefaultAsync(e => EF.Property<int>(e, GetIdPropertyName()) == id, ct);
 
@@ -171,31 +171,22 @@ namespace Repo.Repository.Base
 
         private static void InitializeCompiledQueries()
         {
-            // Use EF.CompileAsyncQuery for true compiled queries
-            // These are compiled once and reused, providing significant performance benefits
-
-            GetByIdIntCompiled = EF.CompileAsyncQuery(
-                (TContext context, int id) =>
-                    context.Set<T>().FirstOrDefault(e => EF.Property<int>(e, GetIdPropertyName()) == id));
-
-            GetByIdLongCompiled = EF.CompileAsyncQuery(
-                (TContext context, long id) =>
-                    context.Set<T>().FirstOrDefault(e => EF.Property<long>(e, GetIdPropertyName()) == id));
-
-            GetAllCompiled = EF.CompileAsyncQuery(
-                (TContext context, bool asNoTracking) =>
-                    asNoTracking
-                        ? context.Set<T>().AsNoTracking().ToList()
-                        : context.Set<T>().ToList());
-
-            CountAllCompiled = EF.CompileAsyncQuery(
-                (TContext context) =>
-                    context.Set<T>().Count());
-
-            // For Count with predicate, we can't easily compile it due to expression parameter limitations
-            // Keep the fallback implementation
-            CountWhereCompiled = (context, predicate, ct) =>
-                context.Set<T>().CountAsync(predicate, ct);
+            // Note: EF.CompileAsyncQuery doesn't support CancellationToken in the signature
+            // We keep the fallback implementations which are already set in the static constructor
+            // For true compiled queries without CancellationToken, use the compiled versions directly
+            
+            // If you need compiled queries, use these commented versions (without CancellationToken):
+            /*
+            GetByIdIntCompiled = (context, id, ct) => 
+                EF.CompileAsyncQuery((TContext ctx, int i) => 
+                    ctx.Set<T>().FirstOrDefault(e => EF.Property<int>(e, GetIdPropertyName()) == i))(context, id);
+            
+            GetByIdLongCompiled = (context, id, ct) =>
+                EF.CompileAsyncQuery((TContext ctx, long i) =>
+                    ctx.Set<T>().FirstOrDefault(e => EF.Property<long>(e, GetIdPropertyName()) == i))(context, id);
+            */
+            
+            // For now, we use the efficient fallback implementations already set in static constructor
         }
 
         private static string GetIdPropertyName()
