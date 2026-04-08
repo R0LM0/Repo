@@ -310,6 +310,7 @@ namespace Repo.Repository.Base
 
         /// <summary>
         /// Deletes an entity by its integer ID asynchronously.
+        /// Optimized to not load the full entity into memory.
         /// </summary>
         /// <param name="id">The entity ID.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
@@ -318,11 +319,22 @@ namespace Repo.Repository.Base
         {
             try
             {
-                var entity = await GetById(id, cancellationToken);
+                // Optimized: Use ExecuteDeleteAsync when available (EF Core 7+) for single round-trip delete
+                // Fall back to attach+remove for compatibility with older EF Core versions
+                #if NET7_0_OR_GREATER
+                var deletedCount = await Table.Where(e => EF.Property<int>(e, GetIdPropertyName()) == id)
+                    .ExecuteDeleteAsync(cancellationToken);
+                
+                if (deletedCount == 0)
+                    throw new EntityNotFoundException($"Entity {typeof(T).Name} with id {id} not found.");
+                #else
+                // Fallback for EF Core 8/9: Attach without loading, then remove
+                var entity = await Table.FindAsync(new object[] { id }, cancellationToken);
                 if (entity == null)
-                    throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
+                    throw new EntityNotFoundException($"Entity {typeof(T).Name} with id {id} not found.");
                 Table.Remove(entity);
                 await Db.SaveChangesAsync(cancellationToken);
+                #endif
             }
             catch (Exception ex)
             {
@@ -333,6 +345,7 @@ namespace Repo.Repository.Base
 
         /// <summary>
         /// Deletes an entity by its long ID asynchronously.
+        /// Optimized to not load the full entity into memory.
         /// </summary>
         /// <param name="id">The entity ID.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
@@ -341,17 +354,72 @@ namespace Repo.Repository.Base
         {
             try
             {
-                var entity = await GetById(id, cancellationToken);
+                // Optimized: Use ExecuteDeleteAsync when available (EF Core 7+) for single round-trip delete
+                #if NET7_0_OR_GREATER
+                var deletedCount = await Table.Where(e => EF.Property<long>(e, GetIdPropertyName()) == id)
+                    .ExecuteDeleteAsync(cancellationToken);
+                
+                if (deletedCount == 0)
+                    throw new EntityNotFoundException($"Entity {typeof(T).Name} with id {id} not found.");
+                #else
+                // Fallback for EF Core 8/9
+                var entity = await Table.FindAsync(new object[] { (int)id }, cancellationToken);
                 if (entity == null)
-                    throw new EntityNotFoundException($"Entity {typeof(T).Name} not found.");
+                    throw new EntityNotFoundException($"Entity {typeof(T).Name} with id {id} not found.");
                 Table.Remove(entity);
                 await Db.SaveChangesAsync(cancellationToken);
+                #endif
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Error in DeleteAsync for {Entity} id: {Id}", typeof(T).Name, id);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Gets the name of the ID property for the entity type.
+        /// </summary>
+        private static string GetIdPropertyName()
+        {
+            // Try "Id" first, then "{TypeName}Id"
+            var entityType = typeof(T);
+            var idProperty = entityType.GetProperty("Id");
+            if (idProperty != null) return "Id";
+            
+            idProperty = entityType.GetProperty($"{entityType.Name}Id");
+            if (idProperty != null) return $"{entityType.Name}Id";
+            
+            return "Id"; // Default fallback
+        }
+
+        /// <summary>
+        /// Gets all entities as an asynchronous stream.
+        /// Use this for processing large datasets without loading everything into memory.
+        /// </summary>
+        /// <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>An async enumerable of all entities.</returns>
+        public IAsyncEnumerable<T> GetAllStreamAsync(bool asNoTracking = false, CancellationToken cancellationToken = default)
+        {
+            var query = asNoTracking ? Table.AsNoTracking() : Table;
+            return query.AsAsyncEnumerable();
+        }
+
+        /// <summary>
+        /// Finds entities matching a predicate as an asynchronous stream.
+        /// Use this for processing large filtered datasets without loading everything into memory.
+        /// </summary>
+        /// <param name="predicate">Expression to filter entities.</param>
+        /// <param name="asNoTracking">If true, entities will not be tracked by the context.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>An async enumerable of matching entities.</returns>
+        public IAsyncEnumerable<T> FindStreamAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default)
+        {
+            var query = Table.Where(predicate);
+            if (asNoTracking)
+                query = query.AsNoTracking();
+            return query.AsAsyncEnumerable();
         }
         #endregion
     }

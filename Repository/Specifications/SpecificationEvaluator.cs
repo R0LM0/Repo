@@ -35,6 +35,14 @@ namespace Repo.Repository.Specifications
             query = spec.Includes.Aggregate(query, (current, include) => current.Include(include));
             query = spec.IncludeStrings.Aggregate(query, (current, include) => current.Include(include));
 
+            // Apply split query for multiple includes to avoid Cartesian explosion
+            // Automatically enable when UseSplitQuery is true or when more than one include is present
+            var totalIncludes = spec.Includes.Count + spec.IncludeStrings.Count;
+            if (spec.UseSplitQuery || totalIncludes > 1)
+            {
+                query = query.AsSplitQuery();
+            }
+
             // Apply tracking configuration
             if (!spec.IsTrackingEnabled)
             {

@@ -56,6 +56,13 @@ namespace Repo.Repository.Specifications
         /// Gets or sets a value indicating whether change tracking is enabled.
         /// </summary>
         bool IsTrackingEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to use split query for this specification.
+        /// When true and there are multiple includes, EF Core will execute separate queries
+        /// to avoid Cartesian explosion. Improves performance for queries with many related entities.
+        /// </summary>
+        bool UseSplitQuery { get; set; }
     }
 
     /// <summary>
@@ -112,6 +119,13 @@ namespace Repo.Repository.Specifications
         /// Gets or sets a value indicating whether change tracking is enabled. Default is true.
         /// </summary>
         public bool IsTrackingEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to use split query for this specification.
+        /// When true and there are multiple includes, EF Core will execute separate queries
+        /// to avoid Cartesian explosion. Automatically enabled when more than one include is present.
+        /// </summary>
+        public bool UseSplitQuery { get; set; }
 
         /// <summary>
         /// Adds filter criteria to the specification.
