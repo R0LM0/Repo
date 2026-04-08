@@ -307,6 +307,25 @@ namespace Repo.Repository.Base
         Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets all entities as an asynchronous stream.
+        /// Use this for processing large datasets without loading everything into memory.
+        /// </summary>
+        /// <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>An async enumerable of all entities.</returns>
+        IAsyncEnumerable<T> GetAllStreamAsync(bool asNoTracking = false, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Finds entities matching a predicate as an asynchronous stream.
+        /// Use this for processing large filtered datasets without loading everything into memory.
+        /// </summary>
+        /// <param name="predicate">Expression to filter entities.</param>
+        /// <param name="asNoTracking">If true, entities will not be tracked by the context. Default is false.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>An async enumerable of matching entities.</returns>
+        IAsyncEnumerable<T> FindStreamAsync(Expression<Func<T, bool>> predicate, bool asNoTracking = false, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Adds multiple entities asynchronously.
         /// </summary>
         /// <param name="entities">The entities to add.</param>

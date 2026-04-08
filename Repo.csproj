@@ -12,7 +12,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591;1574</NoWarn>
     <PackageId>AdvancedRepository.NET8</PackageId>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <Authors>Lenin Osorio Martinez - r0lm0 </Authors>
     <Company>freelance</Company>
     <Description>Librería avanzada de repositorio para .NET 8+ con funcionalidades de caché, validación, mapeo y especificaciones</Description>
