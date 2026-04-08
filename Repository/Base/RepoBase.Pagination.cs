@@ -13,6 +13,7 @@
 // -----------------------------------------------------------------------------
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Repo.Repository.Extensions;
 using Repo.Repository.Models;
 using System.Linq.Expressions;

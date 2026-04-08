@@ -13,6 +13,9 @@ namespace Repo.Repository.Services
         // Registry of all stored cache keys
         private readonly ConcurrentDictionary<string, byte> _keys = new();
 
+        // Semaphores for preventing cache stampede (one per key)
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
+
         public MemoryCacheService(IMemoryCache cache, ILogger<MemoryCacheService> logger)
         {
             _cache = cache;
@@ -54,7 +57,6 @@ namespace Repo.Repository.Services
                 _keys.TryAdd(key, 0);
 
                 _logger.LogDebug("Cache SET {Key}. KeysCount={Count}", key, _keys.Count);
-
 
                 return Task.CompletedTask;
             }
@@ -125,18 +127,35 @@ namespace Repo.Repository.Services
         {
             try
             {
+                // Fast path: check cache first
                 if (_cache.TryGetValue(key, out T? value))
                     return value!;
 
-                var newValue = await factory();
-                await SetAsync(key, newValue, expiration);
-                return newValue;
+                // Prevent cache stampede: only one thread should compute the value per key
+                var lockObj = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+                await lockObj.WaitAsync().ConfigureAwait(false);
+
+                try
+                {
+                    // Double-check pattern: another thread might have set the value while we were waiting
+                    if (_cache.TryGetValue(key, out value))
+                        return value!;
+
+                    var newValue = await factory().ConfigureAwait(false);
+                    await SetAsync(key, newValue, expiration).ConfigureAwait(false);
+                    return newValue;
+                }
+                finally
+                {
+                    lockObj.Release();
+                    _locks.TryRemove(key, out _);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetOrSetAsync for key: {Key}", key);
                 // fallback sin cache
-                return await factory();
+                return await factory().ConfigureAwait(false);
             }
         }
     }

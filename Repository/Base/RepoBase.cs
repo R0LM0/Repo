@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repo.Repository.Interfaces;
 using Repo.Repository.Retry;
+using Repo.Repository.Security;
 
 namespace Repo.Repository.Base
 {
@@ -39,6 +40,7 @@ namespace Repo.Repository.Base
         protected readonly ILogger Logger;  // Field for logging
         protected readonly ICacheService? CacheService; // Field for caching
         protected readonly IRetryPolicy? RetryPolicy; // Field for transient fault retry
+        protected readonly IStoredProcedureWhitelist? Whitelist; // Field for stored procedure whitelist
         private bool _disposed = false;
 
         public RepoBase(TContext context, ILogger logger, ICacheService? cacheService = null, IRetryPolicy? retryPolicy = null)

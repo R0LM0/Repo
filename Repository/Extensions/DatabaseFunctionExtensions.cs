@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Repo.Repository.Base;
+using Repo.Repository.Exceptions;
 using System.Data;
+using System.Text.RegularExpressions;
 
 namespace Repo.Repository.Extensions
 {
@@ -10,6 +12,21 @@ namespace Repo.Repository.Extensions
     /// </summary>
     public static class DatabaseFunctionExtensions
     {
+        // Whitelist of allowed aggregate functions
+        private static readonly HashSet<string> AllowedAggregateFunctions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "COUNT", "SUM", "AVG", "MAX", "MIN", "COUNT_BIG", "STDEV", "STDEVP", "VAR", "VARP"
+        };
+
+        // Regex for valid SQL identifiers (column names, table names)
+        private static readonly Regex ValidIdentifierRegex = new Regex(
+            @"^[a-zA-Z_][a-zA-Z0-9_]*$", 
+            RegexOptions.Compiled);
+
+        // Regex for valid window functions
+        private static readonly Regex ValidWindowFunctionRegex = new Regex(
+            @"^(ROW_NUMBER|RANK|DENSE_RANK|NTILE|LEAD|LAG|FIRST_VALUE|LAST_VALUE)\s*\(",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
         /// <summary>
         /// Executes a scalar database function and returns the result.
         /// </summary>
@@ -31,7 +48,7 @@ namespace Repo.Repository.Extensions
             var sql = $"SELECT {functionName}({paramList})";
             
             var context = GetDbContext(repo);
-            var result = await context.Database.SqlQueryRaw<TResult>(sql, parameters).FirstOrDefaultAsync();
+            var result = await context.Database.SqlQueryRaw<TResult>(sql, parameters).FirstOrDefaultAsync().ConfigureAwait(false);
             
             return result!;
         }
@@ -58,7 +75,7 @@ namespace Repo.Repository.Extensions
             var sql = $"SELECT * FROM {functionName}({paramList})";
             
             var context = GetDbContext(repo);
-            return await context.Set<TResult>().FromSqlRaw(sql, parameters).ToListAsync();
+            return await context.Set<TResult>().FromSqlRaw(sql, parameters).ToListAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -82,13 +99,24 @@ namespace Repo.Repository.Extensions
             if (string.IsNullOrWhiteSpace(columnName))
                 throw new ArgumentException("Column name cannot be empty.", nameof(columnName));
 
+            // Security: Validate aggregate function is in whitelist
+            if (!AllowedAggregateFunctions.Contains(aggregateFunction))
+                throw new SecurityException($"Aggregate function '{aggregateFunction}' is not allowed. Allowed functions: {string.Join(", ", AllowedAggregateFunctions)}");
+
+            // Security: Validate column name format
+            if (!IsValidSqlIdentifier(columnName))
+                throw new SecurityException($"Invalid column name: '{columnName}'. Only alphanumeric characters and underscores are allowed.");
+
             var context = GetDbContext(repo);
             var tableName = context.Model.FindEntityType(typeof(T))?.GetTableName() ?? typeof(T).Name;
             
-            var whereClause = predicate != null ? "WHERE " + ConvertPredicateToSql(predicate) : "";
-            var sql = $"SELECT {aggregateFunction}({columnName}) FROM {tableName} {whereClause}";
+            // Security: Validate table name
+            if (!IsValidSqlIdentifier(tableName))
+                throw new SecurityException($"Invalid table name derived from type: {tableName}");
+
+            var sql = $"SELECT {aggregateFunction}({columnName}) FROM [{tableName}]";
             
-            var result = await context.Database.SqlQueryRaw<TResult>(sql).FirstOrDefaultAsync();
+            var result = await context.Database.SqlQueryRaw<TResult>(sql).FirstOrDefaultAsync().ConfigureAwait(false);
             return result!;
         }
 
@@ -112,16 +140,46 @@ namespace Repo.Repository.Extensions
             if (string.IsNullOrWhiteSpace(windowFunction))
                 throw new ArgumentException("Window function cannot be empty.", nameof(windowFunction));
 
+            // Security: Validate window function format
+            if (!ValidWindowFunctionRegex.IsMatch(windowFunction))
+                throw new SecurityException($"Invalid window function: '{windowFunction}'. Must be a standard SQL window function.");
+
+            // Security: Validate partition columns
+            if (partitionBy != null)
+            {
+                foreach (var col in partitionBy)
+                {
+                    if (!IsValidSqlIdentifier(col))
+                        throw new SecurityException($"Invalid partition column: '{col}'");
+                }
+            }
+
+            // Security: Validate order columns
+            foreach (var col in orderBy)
+            {
+                if (!IsValidSqlIdentifier(col))
+                    throw new SecurityException($"Invalid order column: '{col}'");
+            }
+
             var context = GetDbContext(repo);
             var tableName = context.Model.FindEntityType(typeof(T))?.GetTableName() ?? typeof(T).Name;
             
+            // Security: Validate table name
+            if (!IsValidSqlIdentifier(tableName))
+                throw new SecurityException($"Invalid table name: {tableName}");
+
             var partitionClause = partitionBy?.Length > 0 ? $"PARTITION BY {string.Join(", ", partitionBy)}" : "";
             var orderClause = $"ORDER BY {string.Join(", ", orderBy)}";
             var overClause = $"OVER ({partitionClause} {orderClause})".Trim();
             
-            var sql = $"SELECT *, {windowFunction} {overClause} as WindowResult FROM {tableName}";
+            var sql = $"SELECT *, {windowFunction} {overClause} as WindowResult FROM [{tableName}]";
             
-            return await context.Set<TResult>().FromSqlRaw(sql).ToListAsync();
+            return await context.Set<TResult>().FromSqlRaw(sql).ToListAsync().ConfigureAwait(false);
+        }
+
+        private static bool IsValidSqlIdentifier(string identifier)
+        {
+            return !string.IsNullOrWhiteSpace(identifier) && ValidIdentifierRegex.IsMatch(identifier);
         }
 
         private static DbContext GetDbContext<T>(IRepo<T> repo) where T : class

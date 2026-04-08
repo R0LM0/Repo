@@ -15,6 +15,7 @@
 // -----------------------------------------------------------------------------
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 using System.Threading;
 
@@ -132,7 +133,7 @@ namespace Repo.Repository.Base
         /// <param name="predicate">The filter expression.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The count of matching entities.</returns>
-        public async Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        public virtual async Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
             try
             {

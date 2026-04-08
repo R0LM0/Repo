@@ -22,6 +22,8 @@
 
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Repo.Repository.Exceptions;
 using Repo.Repository.Security;
 using System.Threading;
 

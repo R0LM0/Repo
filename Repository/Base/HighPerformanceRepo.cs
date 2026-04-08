@@ -564,11 +564,28 @@ namespace Repo.Repository.Base
             }
         }
 
+        private readonly SemaphoreSlim _timerSemaphore = new(1, 1);
+
         private async void ProcessBatchTimer(object? state)
         {
-            if (_batchQueue.Count > 0)
+            // Prevent concurrent timer executions
+            if (!await _timerSemaphore.WaitAsync(0).ConfigureAwait(false))
+                return;
+
+            try
             {
-                await ProcessCurrentBatchAsync();
+                if (_batchQueue.Count > 0)
+                {
+                    await ProcessCurrentBatchAsync().ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error in ProcessBatchTimer for entity {Entity}", typeof(T).Name);
+            }
+            finally
+            {
+                _timerSemaphore.Release();
             }
         }
 

@@ -66,7 +66,7 @@ namespace Repo.Repository.Base
             RepoOptions? options = null,
             ICacheService? cacheService = null,
             IStoredProcedureWhitelist? whitelist = null)
-            : base(context, logger, cacheService, whitelist)
+            : base(context, logger, cacheService, null)
         {
             _options = options ?? new RepoOptions { EnableCompiledQueries = false };
 

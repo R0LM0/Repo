@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 // -----------------------------------------------------------------------------
 // RepoBase.Specifications.cs
 // -----------------------------------------------------------------------------

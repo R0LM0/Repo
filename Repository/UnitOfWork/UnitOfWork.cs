@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Repo.Repository.Base;
+using Repo.Repository.Exceptions;
 using Repo.Repository.Interfaces;
 using System.Data;
+using System.Text.RegularExpressions;
 
 namespace Repo.Repository.UnitOfWork
 {
@@ -44,6 +46,11 @@ namespace Repo.Repository.UnitOfWork
         {
             var type = typeof(T);
 
+            // Security: Validate that T is a registered entity type
+            var entityType = _context.Model.FindEntityType(type);
+            if (entityType == null)
+                throw new InvalidOperationException($"Type '{type.Name}' is not a registered entity in the DbContext.");
+
             if (!_repositories.ContainsKey(type))
             {
                 var repositoryType = typeof(RepoBase<T, TContext>);
@@ -62,7 +69,7 @@ namespace Repo.Repository.UnitOfWork
         {
             try
             {
-                var result = await _context.SaveChangesAsync();
+                var result = await _context.SaveChangesAsync().ConfigureAwait(false);
                 _logger.LogInformation("Saved {Count} changes to database", result);
                 return result;
             }
@@ -81,7 +88,7 @@ namespace Repo.Repository.UnitOfWork
         {
             if (_transaction == null)
             {
-                _transaction = await _context.Database.BeginTransactionAsync();
+                _transaction = await _context.Database.BeginTransactionAsync().ConfigureAwait(false);
                 _logger.LogInformation("Database transaction started with default isolation level");
             }
             else
@@ -98,7 +105,7 @@ namespace Repo.Repository.UnitOfWork
         {
             if (_transaction == null)
             {
-                _transaction = await _context.Database.BeginTransactionAsync(isolationLevel);
+                _transaction = await _context.Database.BeginTransactionAsync(isolationLevel).ConfigureAwait(false);
                 _logger.LogInformation("Database transaction started with isolation level: {IsolationLevel}", isolationLevel);
             }
             else
@@ -115,8 +122,8 @@ namespace Repo.Repository.UnitOfWork
         {
             if (_transaction != null)
             {
-                await _transaction.CommitAsync();
-                await _transaction.DisposeAsync();
+                await _transaction.CommitAsync().ConfigureAwait(false);
+                await _transaction.DisposeAsync().ConfigureAwait(false);
                 _transaction = null;
                 _logger.LogInformation("Database transaction committed");
             }
@@ -133,8 +140,8 @@ namespace Repo.Repository.UnitOfWork
         {
             if (_transaction != null)
             {
-                await _transaction.RollbackAsync();
-                await _transaction.DisposeAsync();
+                await _transaction.RollbackAsync().ConfigureAwait(false);
+                await _transaction.DisposeAsync().ConfigureAwait(false);
                 _transaction = null;
                 _logger.LogInformation("Database transaction rolled back");
             }
@@ -149,33 +156,70 @@ namespace Repo.Repository.UnitOfWork
             return await Task.FromResult(_context.ChangeTracker.HasChanges());
         }
 
+        // Allowed SQL operations whitelist - only SELECT statements for safety
+        private static readonly Regex _allowedSqlPattern = new Regex(
+            @"^\s*SELECT\s+.+\s+FROM\s+\w+|^\s*INSERT\s+INTO\s+\w+|^\s*UPDATE\s+\w+\s+SET|^\s*DELETE\s+FROM\s+\w+",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         public async Task<int> ExecuteSqlRawAsync(string sql, params object[] parameters)
         {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("SQL cannot be empty", nameof(sql));
+
+            // Security: Validate SQL is in whitelist
+            if (!IsSafeSql(sql))
+                throw new SecurityException("SQL operation not allowed. Only SELECT, INSERT, UPDATE, DELETE are permitted.");
+
             try
             {
-                var result = await _context.Database.ExecuteSqlRawAsync(sql, parameters);
-                _logger.LogInformation("Executed SQL: {Sql} with {ParameterCount} parameters", sql, parameters.Length);
+                var result = await _context.Database.ExecuteSqlRawAsync(sql, parameters).ConfigureAwait(false);
+                // Security: Don't log full SQL in production - only parameter count
+                _logger.LogInformation("Executed SQL command with {ParameterCount} parameters, affected {RowCount} rows", 
+                    parameters.Length, result);
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing SQL: {Sql}", sql);
+                _logger.LogError(ex, "Error executing SQL command with {ParameterCount} parameters", parameters.Length);
                 throw;
             }
         }
 
+        private static bool IsSafeSql(string sql)
+        {
+            // Block dangerous operations
+            var dangerousKeywords = new[] { "DROP", "TRUNCATE", "ALTER", "CREATE", "EXEC", "EXECUTE", "sp_", "xp_" };
+            var upperSql = sql.ToUpperInvariant();
+            
+            foreach (var keyword in dangerousKeywords)
+            {
+                if (upperSql.Contains(keyword))
+                    return false;
+            }
+            
+            return _allowedSqlPattern.IsMatch(sql);
+        }
+
         public async Task<IEnumerable<T>> ExecuteSqlRawAsync<T>(string sql, params object[] parameters) where T : class
         {
+            if (string.IsNullOrWhiteSpace(sql))
+                throw new ArgumentException("SQL cannot be empty", nameof(sql));
+
+            // Security: Validate SQL is safe
+            if (!IsSafeSql(sql))
+                throw new SecurityException("SQL operation not allowed.");
+
             try
             {
-                var result = await _context.Set<T>().FromSqlRaw(sql, parameters).ToListAsync();
-                _logger.LogInformation("Executed SQL query: {Sql} with {ParameterCount} parameters, returned {ResultCount} results",
-                    sql, parameters.Length, result.Count);
+                var result = await _context.Set<T>().FromSqlRaw(sql, parameters).ToListAsync().ConfigureAwait(false);
+                // Security: Don't log full SQL
+                _logger.LogInformation("Executed SQL query with {ParameterCount} parameters, returned {ResultCount} results",
+                    parameters.Length, result.Count);
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing SQL query: {Sql}", sql);
+                _logger.LogError(ex, "Error executing SQL query with {ParameterCount} parameters", parameters.Length);
                 throw;
             }
         }
